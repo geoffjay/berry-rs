@@ -13,6 +13,10 @@ path = "src/main.rs"
 # Shared library
 berry = { workspace = true }
 
+# Server and MCP libraries (for integrated serve/mcp commands)
+berry-server = { path = "../server" }
+berry-mcp = { path = "../mcp" }
+
 # CLI framework
 clap = { workspace = true }
 
@@ -47,9 +51,6 @@ inquire = "0.7"
 
 # Table formatting
 tabled = "0.18"
-
-# Find executables
-which = "7.0"
 
 [dev-dependencies]
 mockito = "1.2"

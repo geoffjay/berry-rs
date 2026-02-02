@@ -5,6 +5,10 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[lib]
+name = "berry_mcp"
+path = "src/lib.rs"
+
 [[bin]]
 name = "berry-mcp"
 path = "src/main.rs"

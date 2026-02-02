@@ -1,71 +1,34 @@
 //! Serve command - start the HTTP server.
 
-use std::process::{Command, Stdio};
-
 use anyhow::Result;
 
-use crate::output::{print_info, print_success};
+use crate::output::print_info;
 
 /// Serve command arguments.
 #[derive(Debug)]
 pub struct ServeArgs {
     pub port: u16,
+    pub host: String,
+    /// Kept for CLI compatibility, but server always runs in foreground now.
+    #[allow(dead_code)]
     pub foreground: bool,
 }
 
 /// Run the serve command.
 pub async fn run(args: ServeArgs) -> Result<()> {
-    let server_binary = find_server_binary()?;
+    // Initialize logging
+    berry::logging::init();
 
-    if args.foreground {
-        print_info(&format!("Starting Berry server on port {}...", args.port));
+    print_info(&format!(
+        "Starting Berry server on {}:{}...",
+        args.host, args.port
+    ));
 
-        // Run in foreground - replace current process
-        let status = Command::new(&server_binary)
-            .args(["--port", &args.port.to_string()])
-            .status()?;
+    let config = berry_server::ServerConfig {
+        port: args.port,
+        host: args.host,
+    };
 
-        if !status.success() {
-            anyhow::bail!("Server exited with status: {}", status);
-        }
-    } else {
-        print_info(&format!(
-            "Starting Berry server in background on port {}...",
-            args.port
-        ));
-
-        // Spawn in background
-        let child = Command::new(&server_binary)
-            .args(["--port", &args.port.to_string()])
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()?;
-
-        print_success(&format!(
-            "Server started with PID {}. Use `berry serve --foreground` to run in foreground.",
-            child.id()
-        ));
-    }
-
-    Ok(())
-}
-
-/// Find the server binary.
-fn find_server_binary() -> Result<String> {
-    // Try to find berry-server in PATH or relative to current binary
-    let candidates = [
-        "berry-server",
-        "./berry-server",
-        "../server/target/release/berry-server",
-        "../server/target/debug/berry-server",
-    ];
-
-    for candidate in candidates {
-        if which::which(candidate).is_ok() {
-            return Ok(candidate.to_string());
-        }
-    }
-
-    // If not found, assume it's in PATH and let the OS handle it
-    Ok("berry-server".to_string())
+    // Run the server directly (blocks until shutdown)
+    berry_server::run_server(config).await
 }

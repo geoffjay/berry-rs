@@ -5,6 +5,10 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[lib]
+name = "berry_server"
+path = "src/lib.rs"
+
 [[bin]]
 name = "berry-server"
 path = "src/main.rs"

@@ -118,7 +118,11 @@ enum Commands {
         #[arg(short = 'p', long, default_value = "4114")]
         port: u16,
 
-        /// Run in foreground
+        /// Host to bind to
+        #[arg(long, default_value = "127.0.0.1")]
+        host: String,
+
+        /// Run in foreground (always runs in foreground now)
         #[arg(short = 'f', long)]
         foreground: bool,
     },
@@ -233,8 +237,16 @@ async fn main() -> Result<()> {
             commands::search(client, args).await
         }
 
-        Some(Commands::Serve { port, foreground }) => {
-            let args = commands::serve::ServeArgs { port, foreground };
+        Some(Commands::Serve {
+            port,
+            host,
+            foreground,
+        }) => {
+            let args = commands::serve::ServeArgs {
+                port,
+                host,
+                foreground,
+            };
             commands::serve(args).await
         }
 
