@@ -1,0 +1,25 @@
+[package]
+name = "cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "cli"
+
+[dependencies]
+clap = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+colored = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+prettytable-rs = "0.10"
+
+[dev-dependencies]
+mockito = "1.2"
+tokio-test = "0.4"
