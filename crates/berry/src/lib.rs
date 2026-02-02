@@ -14,9 +14,10 @@
 //! # Example
 //!
 //! ```no_run
+//! use std::sync::Arc;
 //! use berry::{
 //!     config::load_config,
-//!     store::{ChromaStore, VectorStore},
+//!     store::{ChromaStore, VectorStore, create_embedding_service},
 //!     types::{CreateMemoryRequest, MemoryType},
 //! };
 //!
@@ -25,8 +26,9 @@
 //!     // Load configuration
 //!     let config = load_config()?;
 //!
-//!     // Create store
-//!     let store = ChromaStore::new(&config.chroma);
+//!     // Create embedding service and store
+//!     let embedding_service = Arc::from(create_embedding_service(&config.embedding)?);
+//!     let store = ChromaStore::new(&config.chroma, embedding_service);
 //!     store.initialize().await?;
 //!
 //!     // Create a memory

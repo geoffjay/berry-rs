@@ -627,39 +627,51 @@ impl VectorStore for ChromaStore {
 
         let mut memories = Vec::new();
 
-        if let (Some(docs), Some(metas)) = (result.documents.first(), result.metadatas.first()) {
-            for (doc, meta) in docs.iter().zip(metas.iter()) {
+        if let (Some(ids), Some(docs), Some(metas)) = (
+            result.ids.first(),
+            result.documents.first(),
+            result.metadatas.first(),
+        ) {
+            for ((chroma_id, doc), meta) in ids.iter().zip(docs.iter()).zip(metas.iter()) {
                 if let (Some(document), Some(metadata)) = (doc.as_ref(), meta.as_ref()) {
-                    match Self::metadata_to_memory(document, metadata) {
-                        Ok(memory) => {
-                            // Filter by visibility
-                            if memory.is_visible_to(request.as_actor.as_deref()) {
-                                // Filter by tags if specified
-                                if !request.tags.is_empty() {
-                                    let has_tag = request.tags.iter().any(|t| memory.tags.contains(t));
-                                    if !has_tag {
-                                        continue;
-                                    }
+                    // Try to parse with our format first, then fall back to legacy format
+                    let memory = match Self::metadata_to_memory(document, metadata) {
+                        Ok(m) => m,
+                        Err(_) => {
+                            // Fall back to legacy format (from TypeScript berry)
+                            match Self::legacy_metadata_to_memory(chroma_id, document, metadata) {
+                                Ok(m) => m,
+                                Err(e) => {
+                                    tracing::warn!("Failed to parse memory {}: {}", chroma_id, e);
+                                    continue;
                                 }
-
-                                // Filter by date range
-                                if let Some(ref from) = request.from {
-                                    if memory.created_at < *from {
-                                        continue;
-                                    }
-                                }
-                                if let Some(ref to) = request.to {
-                                    if memory.created_at > *to {
-                                        continue;
-                                    }
-                                }
-
-                                memories.push(memory);
                             }
                         }
-                        Err(e) => {
-                            tracing::warn!("Failed to parse memory: {}", e);
+                    };
+
+                    // Filter by visibility
+                    if memory.is_visible_to(request.as_actor.as_deref()) {
+                        // Filter by tags if specified
+                        if !request.tags.is_empty() {
+                            let has_tag = request.tags.iter().any(|t| memory.tags.contains(t));
+                            if !has_tag {
+                                continue;
+                            }
                         }
+
+                        // Filter by date range
+                        if let Some(ref from) = request.from {
+                            if memory.created_at < *from {
+                                continue;
+                            }
+                        }
+                        if let Some(ref to) = request.to {
+                            if memory.created_at > *to {
+                                continue;
+                            }
+                        }
+
+                        memories.push(memory);
                     }
                 }
             }
