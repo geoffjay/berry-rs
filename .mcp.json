@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "overmind": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/geoffjay/mcp-servers#subdirectory=overmind",
+        "mcp-server-overmind"
+      ],
+      "env": {}
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp",
+        "--api-key",
+        "${UPSTASH_CONTEXT7_API_KEY}"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -51,11 +51,17 @@ If the file doesn't exist, Berry uses default values. Create it with `berry init
     // Collection name for storing memories
     "collection": "berry_memories"
 
-    // Optional: authentication provider
+    // Optional: authentication provider ("token", "basic", "x-chroma-token")
     // "provider": "token",
 
     // Optional: API key for authentication
-    // "apiKey": "your-api-key"
+    // "apiKey": "your-api-key",
+
+    // Optional: Tenant name (for ChromaDB Cloud or multi-tenant setups)
+    // "tenant": "your-tenant",
+
+    // Optional: Database name (for ChromaDB Cloud or multi-tenant setups)
+    // "database": "your-database"
   }
 }
 ```
@@ -136,6 +142,20 @@ API key for ChromaDB authentication (optional).
 
 - **Type:** `string` (optional)
 
+#### `chroma.tenant`
+
+Tenant name for ChromaDB Cloud or multi-tenant deployments (optional).
+
+- **Type:** `string` (optional)
+- **Example:** `"my-tenant-id"`
+
+#### `chroma.database`
+
+Database name for ChromaDB Cloud or multi-tenant deployments (optional).
+
+- **Type:** `string` (optional)
+- **Example:** `"my-database"`
+
 ## Environment Variables
 
 Environment variables override configuration file values.
@@ -157,8 +177,10 @@ Environment variables override configuration file values.
 |----------|-------------|---------|
 | `CHROMA_URL` | ChromaDB server URL | `http://localhost:8000` |
 | `CHROMA_COLLECTION` | Collection name | `berry_memories` |
-| `CHROMA_PROVIDER` | Auth provider | (none) |
-| `CHROMA_API_KEY` | API key | (none) |
+| `CHROMA_PROVIDER` | Auth provider (`token`, `basic`, `x-chroma-token`) | (none) |
+| `CHROMA_API_KEY` | API key or token | (none) |
+| `CHROMA_TENANT` | Tenant name (for ChromaDB Cloud) | (none) |
+| `CHROMA_DATABASE` | Database name (for ChromaDB Cloud) | (none) |
 
 ### Setting Environment Variables
 
@@ -219,3 +241,46 @@ Example:
 ```bash
 berry-server --port 8080 --host 0.0.0.0
 ```
+
+## ChromaDB Cloud Configuration
+
+To connect to ChromaDB Cloud, you need to provide the URL, tenant, database, and authentication credentials:
+
+### Using Environment Variables
+
+```bash
+export CHROMA_URL=https://api.trychroma.com
+export CHROMA_TENANT=your-tenant-id
+export CHROMA_DATABASE=your-database-name
+export CHROMA_PROVIDER=token
+export CHROMA_API_KEY=your-api-key
+
+berry serve
+```
+
+### Using Configuration File
+
+```jsonc
+{
+  "chroma": {
+    "url": "https://api.trychroma.com",
+    "collection": "berry_memories",
+    "provider": "token",
+    "apiKey": "your-api-key",
+    "tenant": "your-tenant-id",
+    "database": "your-database-name"
+  }
+}
+```
+
+### Authentication Providers
+
+Berry supports the following authentication providers for ChromaDB:
+
+| Provider | Header | Description |
+|----------|--------|-------------|
+| `token` or `bearer` | `Authorization: Bearer <key>` | Standard bearer token (ChromaDB Cloud default) |
+| `basic` | `Authorization: Basic <key>` | HTTP Basic authentication |
+| `x-chroma-token` | `X-Chroma-Token: <key>` | Legacy ChromaDB token header |
+
+If no provider is specified but an API key is provided, Berry defaults to bearer token authentication.

@@ -14,6 +14,8 @@ pub struct Config {
     pub defaults: DefaultsConfig,
     /// ChromaDB configuration
     pub chroma: ChromaConfig,
+    /// Embedding service configuration
+    pub embedding: EmbeddingConfig,
 }
 
 impl Default for Config {
@@ -22,6 +24,7 @@ impl Default for Config {
             server: ServerConfig::default(),
             defaults: DefaultsConfig::default(),
             chroma: ChromaConfig::default(),
+            embedding: EmbeddingConfig::default(),
         }
     }
 }
@@ -77,10 +80,15 @@ pub struct ChromaConfig {
     pub url: String,
     /// Collection name for memories
     pub collection: String,
-    /// Authentication provider (if any)
+    /// Authentication provider (if any): "token", "basic"
     pub provider: Option<String>,
-    /// API key for authentication (if needed)
+    /// API key or token for authentication (if needed)
+    #[serde(rename = "apiKey")]
     pub api_key: Option<String>,
+    /// Tenant name (for ChromaDB Cloud or multi-tenant setups)
+    pub tenant: Option<String>,
+    /// Database name (for ChromaDB Cloud or multi-tenant setups)
+    pub database: Option<String>,
 }
 
 impl Default for ChromaConfig {
@@ -90,6 +98,35 @@ impl Default for ChromaConfig {
             collection: "berry_memories".to_string(),
             provider: None,
             api_key: None,
+            tenant: None,
+            database: None,
+        }
+    }
+}
+
+/// Embedding service configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct EmbeddingConfig {
+    /// Embedding provider: "openai", "cohere", or "none"
+    pub provider: String,
+    /// API key for the embedding service
+    #[serde(rename = "apiKey")]
+    pub api_key: Option<String>,
+    /// Model name for embeddings
+    pub model: String,
+    /// API base URL (optional, for custom endpoints)
+    #[serde(rename = "baseUrl")]
+    pub base_url: Option<String>,
+}
+
+impl Default for EmbeddingConfig {
+    fn default() -> Self {
+        Self {
+            provider: "openai".to_string(),
+            api_key: None,
+            model: "text-embedding-3-small".to_string(),
+            base_url: None,
         }
     }
 }

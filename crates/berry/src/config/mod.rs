@@ -9,4 +9,4 @@ mod loader;
 mod types;
 
 pub use loader::{load_config, config_path, ensure_config_dir};
-pub use types::{Config, ServerConfig, DefaultsConfig, ChromaConfig};
+pub use types::{Config, ServerConfig, DefaultsConfig, ChromaConfig, EmbeddingConfig};

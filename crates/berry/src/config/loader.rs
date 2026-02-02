@@ -26,9 +26,8 @@ pub fn config_path() -> Option<PathBuf> {
 
 /// Ensure the config directory exists.
 pub fn ensure_config_dir() -> ConfigResult<PathBuf> {
-    let dir = config_dir().ok_or_else(|| {
-        ConfigError::NotFound("Could not determine config directory".to_string())
-    })?;
+    let dir = config_dir()
+        .ok_or_else(|| ConfigError::NotFound("Could not determine config directory".to_string()))?;
 
     if !dir.exists() {
         fs::create_dir_all(&dir)?;
@@ -118,8 +117,7 @@ pub fn load_config() -> ConfigResult<Config> {
         if path.exists() {
             let content = fs::read_to_string(&path)?;
             let json = strip_jsonc_comments(&content);
-            config = serde_json::from_str(&json)
-                .map_err(|e| ConfigError::Parse(e.to_string()))?;
+            config = serde_json::from_str(&json).map_err(|e| ConfigError::Parse(e.to_string()))?;
         }
     }
 
@@ -163,6 +161,32 @@ fn apply_env_overrides(config: &mut Config) {
     }
     if let Ok(api_key) = env::var("CHROMA_API_KEY") {
         config.chroma.api_key = Some(api_key);
+    }
+    if let Ok(tenant) = env::var("CHROMA_TENANT") {
+        config.chroma.tenant = Some(tenant);
+    }
+    if let Ok(database) = env::var("CHROMA_DATABASE") {
+        config.chroma.database = Some(database);
+    }
+
+    // Embedding config
+    if let Ok(provider) = env::var("EMBEDDING_PROVIDER") {
+        config.embedding.provider = provider;
+    }
+    if let Ok(api_key) = env::var("EMBEDDING_API_KEY") {
+        config.embedding.api_key = Some(api_key);
+    }
+    // Also support OPENAI_API_KEY as a fallback
+    if config.embedding.api_key.is_none() {
+        if let Ok(api_key) = env::var("OPENAI_API_KEY") {
+            config.embedding.api_key = Some(api_key);
+        }
+    }
+    if let Ok(model) = env::var("EMBEDDING_MODEL") {
+        config.embedding.model = model;
+    }
+    if let Ok(base_url) = env::var("EMBEDDING_BASE_URL") {
+        config.embedding.base_url = Some(base_url);
     }
 }
 
