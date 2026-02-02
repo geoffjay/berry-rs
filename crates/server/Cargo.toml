@@ -1,16 +1,46 @@
 [package]
-name = "server"
+name = "berry-server"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "server"
+name = "berry-server"
+path = "src/main.rs"
 
 [dependencies]
+# Shared library
+berry = { workspace = true }
+
+# CLI framework (for args)
 clap = { workspace = true }
+
+# Error handling
 anyhow = { workspace = true }
+
+# Async runtime
 tokio = { workspace = true }
+
+# Serialization
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+# Date/time
+chrono = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# HTTP server
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# JSON schema
+schemars = { workspace = true }
+
+[dev-dependencies]
+axum-test = "16"
+tokio-test = "0.4"

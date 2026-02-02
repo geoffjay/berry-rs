@@ -1,0 +1,44 @@
+[package]
+name = "berry"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Date/time
+chrono = { workspace = true }
+
+# UUID generation
+uuid = { workspace = true }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Config
+directories = "6.0"
+
+# HTTP client for ChromaDB
+reqwest = { workspace = true }
+
+# JSON Schema generation
+schemars = { version = "0.8", features = ["chrono"] }
+
+# Async trait support
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.16"
