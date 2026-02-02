@@ -1,1 +1,1 @@
-LAYER git@github.com:otter-layers/claude-code-redaction.git TARGET .cursor/
+LAYER https://github.com/otter-layers/claude-code-redaction TARGET .claude/
