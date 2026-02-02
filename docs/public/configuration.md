@@ -284,3 +284,82 @@ Berry supports the following authentication providers for ChromaDB:
 | `x-chroma-token` | `X-Chroma-Token: <key>` | Legacy ChromaDB token header |
 
 If no provider is specified but an API key is provided, Berry defaults to bearer token authentication.
+
+## Embedding Configuration
+
+Berry requires an embedding service for semantic search. Embeddings convert text into vectors that enable similarity-based retrieval.
+
+### Embedding Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `EMBEDDING_PROVIDER` | Embedding provider (`openai`) | `openai` |
+| `EMBEDDING_MODEL` | Model name | `text-embedding-3-small` |
+| `EMBEDDING_BASE_URL` | API base URL | `https://api.openai.com/v1` |
+| `EMBEDDING_API_KEY` | API key (optional for local services) | (none) |
+| `OPENAI_API_KEY` | Fallback API key if `EMBEDDING_API_KEY` not set | (none) |
+
+### Using OpenAI Embeddings
+
+```bash
+export EMBEDDING_PROVIDER=openai
+export EMBEDDING_MODEL=text-embedding-3-small
+export OPENAI_API_KEY=sk-your-api-key
+```
+
+Available OpenAI models:
+
+| Model | Dimensions | Notes |
+|-------|------------|-------|
+| `text-embedding-3-small` | 1536 | Good balance of quality and cost |
+| `text-embedding-3-large` | 3072 | Higher quality, more expensive |
+| `text-embedding-ada-002` | 1536 | Legacy model |
+
+### Using Ollama (Local Embeddings)
+
+For local embeddings without API costs, use [Ollama](https://ollama.ai/):
+
+```bash
+# Install an embedding model
+ollama pull nomic-embed-text
+
+# Configure Berry to use Ollama
+export EMBEDDING_PROVIDER=openai
+export EMBEDDING_MODEL=nomic-embed-text
+export EMBEDDING_BASE_URL=http://localhost:11434/v1
+# No API key needed for local Ollama
+```
+
+Supported Ollama embedding models:
+
+| Model | Dimensions | Notes |
+|-------|------------|-------|
+| `nomic-embed-text` | 768 | Good quality, popular choice |
+| `mxbai-embed-large` | 1024 | Higher quality |
+| `all-minilm` | 384 | Smaller, faster |
+| `snowflake-arctic-embed` | 1024 | High quality |
+
+### Embedding Dimension Mismatch
+
+If you change embedding models, the dimensions may differ. ChromaDB collections are created with a fixed embedding dimension. If you see errors like:
+
+```
+Collection expecting embedding with dimension of 384, got 768
+```
+
+You need to migrate your data to a new collection. See the [migrate command](./cli.md#migrate) for details.
+
+### Configuration File
+
+Embedding configuration can also be set in the config file:
+
+```jsonc
+{
+  "embedding": {
+    "provider": "openai",
+    "model": "nomic-embed-text",
+    "baseUrl": "http://localhost:11434/v1"
+    // "apiKey": "optional-for-local-services"
+  }
+}
+```

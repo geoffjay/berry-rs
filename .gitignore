@@ -1,5 +1,7 @@
-/target
+.env
 
 .claude/settings.local.json
 
-.env
+.venv/
+target/
+docs/site/

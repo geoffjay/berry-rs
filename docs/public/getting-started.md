@@ -175,6 +175,7 @@ Expected health response:
 
 ## Next Steps
 
+- [CLI Reference](./cli.md) - Complete command reference
 - [Configuration](./configuration.md) - Customize Berry settings
 - [Development](./develop.md) - Set up a development environment
 

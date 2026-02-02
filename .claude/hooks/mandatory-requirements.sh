@@ -6,7 +6,7 @@ cat << 'EOF'
 REQUIRED: Before performing a build session, the following should be performed:
 
 1. RETRIEVE PROJECT REQUIREMENTS
-   Read the requirements document from docs/requirements.md.
+   Read the requirements document from docs/development/requirements.md.
 
 That is all. Building this project should strictly adhere to the requirements that are provided.
 EOF
