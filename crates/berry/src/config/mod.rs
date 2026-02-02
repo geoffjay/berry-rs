@@ -8,5 +8,5 @@
 mod loader;
 mod types;
 
-pub use loader::{load_config, config_path, ensure_config_dir};
-pub use types::{Config, ServerConfig, DefaultsConfig, ChromaConfig, EmbeddingConfig};
+pub use loader::{config_path, ensure_config_dir, load_config};
+pub use types::{ChromaConfig, Config, DefaultsConfig, EmbeddingConfig, ServerConfig};

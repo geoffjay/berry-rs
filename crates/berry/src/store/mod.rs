@@ -8,5 +8,5 @@ mod embedding;
 mod traits;
 
 pub use chroma::ChromaStore;
-pub use embedding::{create_embedding_service, EmbeddingService, NoOpEmbedding, OpenAIEmbedding};
+pub use embedding::{EmbeddingService, NoOpEmbedding, OpenAIEmbedding, create_embedding_service};
 pub use traits::VectorStore;

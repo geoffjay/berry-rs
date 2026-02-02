@@ -108,7 +108,9 @@ impl BerryMcpClient {
         if let Some(actor) = as_actor {
             if let Some(memory) = self.recall(id, Some(actor)).await? {
                 if memory.created_by != actor && memory.owner.as_deref() != Some(actor) {
-                    anyhow::bail!("Permission denied: only the creator or owner can delete this memory");
+                    anyhow::bail!(
+                        "Permission denied: only the creator or owner can delete this memory"
+                    );
                 }
             } else {
                 return Ok(false); // Not found or not visible
@@ -149,9 +151,11 @@ impl BerryMcpClient {
             memory_type,
             tags: tags.unwrap_or_default(),
             limit: limit.unwrap_or(10),
-            from: from.and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+            from: from
+                .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
                 .map(|dt| dt.with_timezone(&chrono::Utc)),
-            to: to.and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+            to: to
+                .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
                 .map(|dt| dt.with_timezone(&chrono::Utc)),
         };
 

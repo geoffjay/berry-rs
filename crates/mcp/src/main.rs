@@ -5,7 +5,7 @@
 
 use clap::Parser;
 
-use berry_mcp::{run_mcp, McpConfig};
+use berry_mcp::{McpConfig, run_mcp};
 
 /// Berry MCP Server
 #[derive(Parser)]

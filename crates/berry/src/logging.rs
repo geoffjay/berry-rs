@@ -3,7 +3,7 @@
 //! Uses tracing with tracing-subscriber for structured logging.
 
 use std::env;
-use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 /// Log format options.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -85,19 +85,16 @@ pub fn init() {
 
 /// Initialize the logging system with the given configuration.
 pub fn init_with_config(config: LogConfig) {
-    let filter = EnvFilter::try_new(&config.level)
-        .unwrap_or_else(|_| EnvFilter::new("info"));
+    let filter = EnvFilter::try_new(&config.level).unwrap_or_else(|_| EnvFilter::new("info"));
 
     match config.format {
         LogFormat::Text => {
-            let subscriber = tracing_subscriber::registry()
-                .with(filter)
-                .with(
-                    fmt::layer()
-                        .with_file(config.include_location)
-                        .with_line_number(config.include_location)
-                        .with_target(config.include_target),
-                );
+            let subscriber = tracing_subscriber::registry().with(filter).with(
+                fmt::layer()
+                    .with_file(config.include_location)
+                    .with_line_number(config.include_location)
+                    .with_target(config.include_target),
+            );
             if tracing::subscriber::set_global_default(subscriber).is_err() {
                 // Subscriber already set, which is fine
             }

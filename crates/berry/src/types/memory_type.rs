@@ -57,9 +57,18 @@ mod tests {
 
     #[test]
     fn test_memory_type_from_str() {
-        assert_eq!(MemoryType::from_str("question").unwrap(), MemoryType::Question);
-        assert_eq!(MemoryType::from_str("REQUEST").unwrap(), MemoryType::Request);
-        assert_eq!(MemoryType::from_str("Information").unwrap(), MemoryType::Information);
+        assert_eq!(
+            MemoryType::from_str("question").unwrap(),
+            MemoryType::Question
+        );
+        assert_eq!(
+            MemoryType::from_str("REQUEST").unwrap(),
+            MemoryType::Request
+        );
+        assert_eq!(
+            MemoryType::from_str("Information").unwrap(),
+            MemoryType::Information
+        );
         assert!(MemoryType::from_str("invalid").is_err());
     }
 

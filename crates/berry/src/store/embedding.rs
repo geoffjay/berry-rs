@@ -44,12 +44,10 @@ impl OpenAIEmbedding {
         let api_key = match config.api_key.clone() {
             Some(key) => key,
             None if is_local => String::new(), // No key needed for local services
-            None => {
-                return Err(StoreError::InitializationFailed(
-                    "OpenAI API key required for embeddings. Set OPENAI_API_KEY or EMBEDDING_API_KEY"
-                        .to_string(),
-                ))
-            }
+            None => return Err(StoreError::InitializationFailed(
+                "OpenAI API key required for embeddings. Set OPENAI_API_KEY or EMBEDDING_API_KEY"
+                    .to_string(),
+            )),
         };
 
         Ok(Self {

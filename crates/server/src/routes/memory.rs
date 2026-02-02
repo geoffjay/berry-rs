@@ -1,14 +1,12 @@
 //! Memory CRUD endpoints.
 
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 
-use berry::{
-    CreateMemoryRequest, DeleteResponse, MemoryResponse, UpdateVisibilityRequest,
-};
+use berry::{CreateMemoryRequest, DeleteResponse, MemoryResponse, UpdateVisibilityRequest};
 
 use crate::state::AppState;
 

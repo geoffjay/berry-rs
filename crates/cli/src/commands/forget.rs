@@ -32,14 +32,20 @@ pub async fn run(client: BerryClient, args: ForgetArgs) -> Result<()> {
     match client.delete_memory(&args.id).await {
         Ok(true) => {
             if args.json_output {
-                println!(r#"{{"success": true, "deleted": true, "id": "{}"}}"#, args.id);
+                println!(
+                    r#"{{"success": true, "deleted": true, "id": "{}"}}"#,
+                    args.id
+                );
             } else {
                 print_success(&format!("Memory {} deleted.", args.id));
             }
         }
         Ok(false) => {
             if args.json_output {
-                println!(r#"{{"success": true, "deleted": false, "id": "{}"}}"#, args.id);
+                println!(
+                    r#"{{"success": true, "deleted": false, "id": "{}"}}"#,
+                    args.id
+                );
             } else {
                 print_info(&format!("Memory {} not found.", args.id));
             }

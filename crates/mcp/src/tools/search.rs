@@ -56,5 +56,6 @@ impl SearchTool {
     pub const NAME: &'static str = "search";
 
     /// Tool description.
-    pub const DESCRIPTION: &'static str = "Search for memories in the Berry memory system using semantic search.";
+    pub const DESCRIPTION: &'static str =
+        "Search for memories in the Berry memory system using semantic search.";
 }

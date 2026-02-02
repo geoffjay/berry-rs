@@ -36,5 +36,6 @@ impl RecallTool {
     pub const NAME: &'static str = "recall";
 
     /// Tool description.
-    pub const DESCRIPTION: &'static str = "Retrieve a memory by its ID from the Berry memory system.";
+    pub const DESCRIPTION: &'static str =
+        "Retrieve a memory by its ID from the Berry memory system.";
 }

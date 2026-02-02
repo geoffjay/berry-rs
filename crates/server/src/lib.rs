@@ -6,8 +6,8 @@
 use std::net::SocketAddr;
 
 use axum::{
-    routing::{delete, get, patch, post},
     Router,
+    routing::{delete, get, patch, post},
 };
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -17,7 +17,7 @@ use tower_http::{
 use std::sync::Arc;
 
 use berry::config::load_config;
-use berry::store::{create_embedding_service, ChromaStore, VectorStore};
+use berry::store::{ChromaStore, VectorStore, create_embedding_service};
 
 pub mod routes;
 pub mod state;
@@ -57,7 +57,10 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
     let embedding_service = match create_embedding_service(&app_config.embedding) {
         Ok(service) => Arc::from(service),
         Err(e) => {
-            tracing::warn!("Failed to create embedding service: {}. Semantic search will not work.", e);
+            tracing::warn!(
+                "Failed to create embedding service: {}. Semantic search will not work.",
+                e
+            );
             Arc::from(berry::store::NoOpEmbedding::new()) as Arc<dyn berry::store::EmbeddingService>
         }
     };

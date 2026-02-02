@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::{MemoryType, VisibilityLevel};
 
 /// Root configuration structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
     /// Server connection configuration
@@ -16,17 +16,6 @@ pub struct Config {
     pub chroma: ChromaConfig,
     /// Embedding service configuration
     pub embedding: EmbeddingConfig,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            server: ServerConfig::default(),
-            defaults: DefaultsConfig::default(),
-            chroma: ChromaConfig::default(),
-            embedding: EmbeddingConfig::default(),
-        }
-    }
 }
 
 /// Server connection configuration.

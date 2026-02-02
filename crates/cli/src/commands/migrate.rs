@@ -7,7 +7,7 @@ use std::sync::Arc;
 use anyhow::Result;
 
 use berry::config::load_config;
-use berry::store::{create_embedding_service, ChromaStore, EmbeddingService, VectorStore};
+use berry::store::{ChromaStore, EmbeddingService, VectorStore, create_embedding_service};
 use berry::types::CreateMemoryRequest;
 
 /// Arguments for the migrate command.
@@ -35,7 +35,10 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
     let source_store = ChromaStore::new(&config.chroma, embedding_service.clone());
 
     // Initialize and list all memories
-    println!("Fetching all memories from collection '{}'...", config.chroma.collection);
+    println!(
+        "Fetching all memories from collection '{}'...",
+        config.chroma.collection
+    );
     source_store.initialize().await?;
 
     let memories = source_store.list_all().await?;
@@ -50,7 +53,8 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
     if args.dry_run {
         println!("Dry run - would migrate the following memories:");
         for memory in &memories {
-            println!("  - {} ({}): {}...",
+            println!(
+                "  - {} ({}): {}...",
                 memory.id,
                 memory.memory_type,
                 &memory.content[..memory.content.len().min(50)]
@@ -62,9 +66,9 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
     }
 
     // Determine target collection
-    let target_collection = args.new_collection.unwrap_or_else(|| {
-        format!("{}_migrated", config.chroma.collection)
-    });
+    let target_collection = args
+        .new_collection
+        .unwrap_or_else(|| format!("{}_migrated", config.chroma.collection));
 
     println!("Target collection: {}", target_collection);
     println!();
@@ -114,7 +118,10 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
     println!("  Successful: {}", success_count);
     println!("  Errors: {}", error_count);
     println!();
-    println!("The migrated memories are in collection '{}'.", target_collection);
+    println!(
+        "The migrated memories are in collection '{}'.",
+        target_collection
+    );
     println!();
     println!("To use the new collection, update CHROMA_COLLECTION in your .env file:");
     println!("  CHROMA_COLLECTION={}", target_collection);

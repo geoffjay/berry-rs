@@ -10,7 +10,11 @@ pub fn format_memory(memory: &Memory) -> String {
     let mut output = String::new();
 
     output.push_str(&format!("{}: {}\n", "ID".cyan().bold(), memory.id));
-    output.push_str(&format!("{}: {}\n", "Type".cyan().bold(), memory.memory_type));
+    output.push_str(&format!(
+        "{}: {}\n",
+        "Type".cyan().bold(),
+        memory.memory_type
+    ));
     output.push_str(&format!(
         "{}: {}\n",
         "Visibility".cyan().bold(),

@@ -57,9 +57,18 @@ mod tests {
 
     #[test]
     fn test_visibility_from_str() {
-        assert_eq!(VisibilityLevel::from_str("private").unwrap(), VisibilityLevel::Private);
-        assert_eq!(VisibilityLevel::from_str("SHARED").unwrap(), VisibilityLevel::Shared);
-        assert_eq!(VisibilityLevel::from_str("Public").unwrap(), VisibilityLevel::Public);
+        assert_eq!(
+            VisibilityLevel::from_str("private").unwrap(),
+            VisibilityLevel::Private
+        );
+        assert_eq!(
+            VisibilityLevel::from_str("SHARED").unwrap(),
+            VisibilityLevel::Shared
+        );
+        assert_eq!(
+            VisibilityLevel::from_str("Public").unwrap(),
+            VisibilityLevel::Public
+        );
         assert!(VisibilityLevel::from_str("invalid").is_err());
     }
 

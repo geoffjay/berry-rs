@@ -330,7 +330,7 @@ impl McpServer {
         let input: RememberInput = match serde_json::from_value(arguments) {
             Ok(i) => i,
             Err(e) => {
-                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e))
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
             }
         };
 
@@ -374,7 +374,7 @@ impl McpServer {
         let input: RecallInput = match serde_json::from_value(arguments) {
             Ok(i) => i,
             Err(e) => {
-                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e))
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
             }
         };
 
@@ -424,11 +424,14 @@ impl McpServer {
         let input: ForgetInput = match serde_json::from_value(arguments) {
             Ok(i) => i,
             Err(e) => {
-                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e))
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
             }
         };
 
-        let result = self.client.forget(&input.id, input.as_actor.as_deref()).await;
+        let result = self
+            .client
+            .forget(&input.id, input.as_actor.as_deref())
+            .await;
 
         match result {
             Ok(deleted) => {
@@ -454,7 +457,7 @@ impl McpServer {
         let input: SearchInput = match serde_json::from_value(arguments) {
             Ok(i) => i,
             Err(e) => {
-                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e))
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
             }
         };
 

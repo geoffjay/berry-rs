@@ -4,7 +4,7 @@
 
 use clap::Parser;
 
-use berry_server::{run_server, ServerConfig};
+use berry_server::{ServerConfig, run_server};
 
 /// Berry HTTP Server
 #[derive(Parser)]

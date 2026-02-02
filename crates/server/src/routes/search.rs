@@ -1,6 +1,6 @@
 //! Search endpoint.
 
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{Json, extract::State, http::StatusCode};
 
 use berry::{SearchRequest, SearchResponse};
 

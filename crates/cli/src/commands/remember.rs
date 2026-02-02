@@ -39,7 +39,9 @@ pub async fn run(client: BerryClient, args: RememberArgs) -> Result<()> {
             let selection = Select::new("What type of memory is this?", options)
                 .with_help_message("Select the type of memory")
                 .prompt()?;
-            selection.parse::<MemoryType>().map_err(|e| anyhow::anyhow!(e))?
+            selection
+                .parse::<MemoryType>()
+                .map_err(|e| anyhow::anyhow!(e))?
         }
     };
 
@@ -64,7 +66,9 @@ pub async fn run(client: BerryClient, args: RememberArgs) -> Result<()> {
             let selection = Select::new("Visibility level?", options)
                 .with_help_message("Who can see this memory?")
                 .prompt()?;
-            selection.parse::<VisibilityLevel>().map_err(|e| anyhow::anyhow!(e))?
+            selection
+                .parse::<VisibilityLevel>()
+                .map_err(|e| anyhow::anyhow!(e))?
         }
     };
 

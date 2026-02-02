@@ -44,9 +44,7 @@ impl BerryClient {
             anyhow::bail!("Server health check failed: {}", resp.status());
         }
 
-        resp.json()
-            .await
-            .context("Failed to parse health response")
+        resp.json().await.context("Failed to parse health response")
     }
 
     /// Create a new memory.

@@ -2,8 +2,8 @@
 
 use async_trait::async_trait;
 use chrono::Utc;
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Client;
+use reqwest::header::{AUTHORIZATION, HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -71,7 +71,7 @@ impl ChromaStore {
         // Add authentication header based on provider
         if let Some(api_key) = &config.api_key {
             let masked_key = if api_key.len() > 8 {
-                format!("{}...{}", &api_key[..4], &api_key[api_key.len()-4..])
+                format!("{}...{}", &api_key[..4], &api_key[api_key.len() - 4..])
             } else {
                 "****".to_string()
             };
@@ -103,7 +103,10 @@ impl ChromaStore {
                 _ => {
                     // Default: use X-Chroma-Token for cloud, Bearer for local
                     if is_cloud {
-                        tracing::debug!("Using X-Chroma-Token authentication for cloud (key: {})", masked_key);
+                        tracing::debug!(
+                            "Using X-Chroma-Token authentication for cloud (key: {})",
+                            masked_key
+                        );
                         if let Ok(value) = HeaderValue::from_str(api_key) {
                             headers.insert("X-Chroma-Token", value);
                         }
@@ -175,7 +178,11 @@ impl ChromaStore {
         tracing::debug!(
             "GET collection returned HTTP {}: {}",
             status,
-            if error_body.is_empty() { "(empty)" } else { &error_body[..error_body.len().min(200)] }
+            if error_body.is_empty() {
+                "(empty)"
+            } else {
+                &error_body[..error_body.len().min(200)]
+            }
         );
 
         // If direct GET failed, try listing collections and finding by name
@@ -194,11 +201,20 @@ impl ChromaStore {
             }
         });
 
-        let resp = self.client.post(&collections_path).json(&body).send().await?;
+        let resp = self
+            .client
+            .post(&collections_path)
+            .json(&body)
+            .send()
+            .await?;
 
         if resp.status().is_success() {
             let collection: ChromaCollection = resp.json().await?;
-            tracing::info!("Created collection '{}' with ID: {}", self.collection_name, collection.id);
+            tracing::info!(
+                "Created collection '{}' with ID: {}",
+                self.collection_name,
+                collection.id
+            );
             return Ok(collection.id);
         }
 
@@ -234,7 +250,11 @@ impl ChromaStore {
             tracing::warn!(
                 "Failed to list collections (HTTP {}): {}",
                 status,
-                if error.is_empty() { "(empty response)" } else { &error }
+                if error.is_empty() {
+                    "(empty response)"
+                } else {
+                    &error
+                }
             );
             return Err(StoreError::QueryFailed(format!(
                 "Failed to list collections: HTTP {} - {}",
@@ -244,7 +264,10 @@ impl ChromaStore {
 
         // Get the raw response text first for debugging
         let body = resp.text().await.unwrap_or_default();
-        tracing::debug!("Collections list response: {}", &body[..body.len().min(500)]);
+        tracing::debug!(
+            "Collections list response: {}",
+            &body[..body.len().min(500)]
+        );
 
         // ChromaDB returns an array of collection objects
         let collections: Vec<ChromaCollection> = serde_json::from_str(&body).map_err(|e| {
@@ -257,12 +280,20 @@ impl ChromaStore {
 
         tracing::debug!("Found {} collections", collections.len());
         for collection in &collections {
-            tracing::debug!("  - Collection: '{}' (ID: {})", collection.name, collection.id);
+            tracing::debug!(
+                "  - Collection: '{}' (ID: {})",
+                collection.name,
+                collection.id
+            );
         }
 
         for collection in collections {
             if collection.name == self.collection_name {
-                tracing::info!("Found collection '{}' with ID: {}", collection.name, collection.id);
+                tracing::info!(
+                    "Found collection '{}' with ID: {}",
+                    collection.name,
+                    collection.id
+                );
                 return Ok(collection.id);
             }
         }
@@ -379,10 +410,10 @@ impl ChromaStore {
         // Helper to get string value from various possible field names
         let get_str_opt = |keys: &[&str]| -> Option<String> {
             for key in keys {
-                if let Some(v) = metadata.get(*key) {
-                    if let Some(s) = v.as_str() {
-                        return Some(s.to_string());
-                    }
+                if let Some(v) = metadata.get(*key)
+                    && let Some(s) = v.as_str()
+                {
+                    return Some(s.to_string());
                 }
             }
             None
@@ -433,7 +464,12 @@ impl ChromaStore {
 
         // Shared with
         let shared_with = get_str_opt(&["shared_with", "sharedWith"])
-            .map(|s| s.split(',').filter(|t| !t.is_empty()).map(String::from).collect())
+            .map(|s| {
+                s.split(',')
+                    .filter(|t| !t.is_empty())
+                    .map(String::from)
+                    .collect()
+            })
             .unwrap_or_default();
 
         // Owner
@@ -476,7 +512,7 @@ impl VectorStore for ChromaStore {
         // Generate embedding for the content
         let embeddings = self
             .embedding_service
-            .embed(&[memory.content.clone()])
+            .embed(std::slice::from_ref(&memory.content))
             .await?;
 
         let embedding = embeddings.into_iter().next().ok_or_else(|| {
@@ -579,7 +615,7 @@ impl VectorStore for ChromaStore {
         // Generate embedding for the query
         let embeddings = self
             .embedding_service
-            .embed(&[request.query.clone()])
+            .embed(std::slice::from_ref(&request.query))
             .await?;
 
         let query_embedding = embeddings.into_iter().next().ok_or_else(|| {
@@ -660,15 +696,15 @@ impl VectorStore for ChromaStore {
                         }
 
                         // Filter by date range
-                        if let Some(ref from) = request.from {
-                            if memory.created_at < *from {
-                                continue;
-                            }
+                        if let Some(ref from) = request.from
+                            && memory.created_at < *from
+                        {
+                            continue;
                         }
-                        if let Some(ref to) = request.to {
-                            if memory.created_at > *to {
-                                continue;
-                            }
+                        if let Some(ref to) = request.to
+                            && memory.created_at > *to
+                        {
+                            continue;
                         }
 
                         memories.push(memory);
@@ -787,7 +823,11 @@ impl VectorStore for ChromaStore {
 
         let url = format!("{}/{}", self.collections_path(), collection_id);
 
-        tracing::warn!("Deleting collection {} ({})", self.collection_name, collection_id);
+        tracing::warn!(
+            "Deleting collection {} ({})",
+            self.collection_name,
+            collection_id
+        );
 
         let resp = self.client.delete(&url).send().await?;
 

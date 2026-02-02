@@ -113,12 +113,12 @@ pub fn load_config() -> ConfigResult<Config> {
     let mut config = Config::default();
 
     // Try to load from config file
-    if let Some(path) = config_path() {
-        if path.exists() {
-            let content = fs::read_to_string(&path)?;
-            let json = strip_jsonc_comments(&content);
-            config = serde_json::from_str(&json).map_err(|e| ConfigError::Parse(e.to_string()))?;
-        }
+    if let Some(path) = config_path()
+        && path.exists()
+    {
+        let content = fs::read_to_string(&path)?;
+        let json = strip_jsonc_comments(&content);
+        config = serde_json::from_str(&json).map_err(|e| ConfigError::Parse(e.to_string()))?;
     }
 
     // Apply environment variable overrides
@@ -133,20 +133,20 @@ fn apply_env_overrides(config: &mut Config) {
     if let Ok(url) = env::var("BERRY_SERVER_URL") {
         config.server.url = url;
     }
-    if let Ok(timeout) = env::var("BERRY_TIMEOUT") {
-        if let Ok(t) = timeout.parse() {
-            config.server.timeout = t;
-        }
+    if let Ok(timeout) = env::var("BERRY_TIMEOUT")
+        && let Ok(t) = timeout.parse()
+    {
+        config.server.timeout = t;
     }
 
     // Defaults config
     if let Ok(created_by) = env::var("BERRY_CREATED_BY") {
         config.defaults.created_by = created_by;
     }
-    if let Ok(memory_type) = env::var("BERRY_DEFAULT_TYPE") {
-        if let Ok(t) = memory_type.parse::<MemoryType>() {
-            config.defaults.memory_type = t;
-        }
+    if let Ok(memory_type) = env::var("BERRY_DEFAULT_TYPE")
+        && let Ok(t) = memory_type.parse::<MemoryType>()
+    {
+        config.defaults.memory_type = t;
     }
 
     // Chroma config
@@ -177,10 +177,10 @@ fn apply_env_overrides(config: &mut Config) {
         config.embedding.api_key = Some(api_key);
     }
     // Also support OPENAI_API_KEY as a fallback
-    if config.embedding.api_key.is_none() {
-        if let Ok(api_key) = env::var("OPENAI_API_KEY") {
-            config.embedding.api_key = Some(api_key);
-        }
+    if config.embedding.api_key.is_none()
+        && let Ok(api_key) = env::var("OPENAI_API_KEY")
+    {
+        config.embedding.api_key = Some(api_key);
     }
     if let Ok(model) = env::var("EMBEDDING_MODEL") {
         config.embedding.model = model;
@@ -191,6 +191,7 @@ fn apply_env_overrides(config: &mut Config) {
 }
 
 /// Write a default configuration file.
+#[allow(dead_code)]
 pub fn write_default_config() -> ConfigResult<PathBuf> {
     let dir = ensure_config_dir()?;
     let path = dir.join("config.jsonc");
