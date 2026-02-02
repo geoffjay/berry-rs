@@ -47,4 +47,14 @@ pub trait VectorStore: Send + Sync {
 
     /// Initialize the store (create collections, indexes, etc.).
     async fn initialize(&self) -> StoreResult<()>;
+
+    /// List all memories in the store.
+    ///
+    /// Used for migration and backup purposes.
+    async fn list_all(&self) -> StoreResult<Vec<Memory>>;
+
+    /// Delete the collection.
+    ///
+    /// WARNING: This will delete all data in the collection.
+    async fn delete_collection(&self) -> StoreResult<()>;
 }

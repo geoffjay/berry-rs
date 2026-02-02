@@ -366,6 +366,92 @@ impl ChromaStore {
             shared_with,
         })
     }
+
+    /// Convert legacy metadata format (from TypeScript berry) to Memory.
+    ///
+    /// The legacy format may have different field names and uses the ChromaDB
+    /// document ID as the memory ID.
+    fn legacy_metadata_to_memory(
+        chroma_id: &str,
+        document: &str,
+        metadata: &HashMap<String, serde_json::Value>,
+    ) -> StoreResult<Memory> {
+        // Helper to get string value from various possible field names
+        let get_str_opt = |keys: &[&str]| -> Option<String> {
+            for key in keys {
+                if let Some(v) = metadata.get(*key) {
+                    if let Some(s) = v.as_str() {
+                        return Some(s.to_string());
+                    }
+                }
+            }
+            None
+        };
+
+        // Memory type: try "type", "memoryType", default to information
+        let memory_type = get_str_opt(&["type", "memoryType"])
+            .and_then(|s| s.parse::<MemoryType>().ok())
+            .unwrap_or(MemoryType::Information);
+
+        // Tags: try comma-separated string or JSON array
+        let tags = if let Some(tags_val) = metadata.get("tags") {
+            if let Some(s) = tags_val.as_str() {
+                s.split(',')
+                    .filter(|t| !t.is_empty())
+                    .map(String::from)
+                    .collect()
+            } else if let Some(arr) = tags_val.as_array() {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            } else {
+                vec![]
+            }
+        } else {
+            vec![]
+        };
+
+        // Created by: try various field names, default to "unknown"
+        let created_by = get_str_opt(&["created_by", "createdBy", "author"])
+            .unwrap_or_else(|| "unknown".to_string());
+
+        // Timestamps: try to parse, default to now
+        let now = Utc::now();
+        let created_at = get_str_opt(&["created_at", "createdAt"])
+            .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+            .map(|dt| dt.with_timezone(&Utc))
+            .unwrap_or(now);
+        let updated_at = get_str_opt(&["updated_at", "updatedAt"])
+            .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+            .map(|dt| dt.with_timezone(&Utc))
+            .unwrap_or(now);
+
+        // Visibility: default to public
+        let visibility = get_str_opt(&["visibility"])
+            .and_then(|s| s.parse::<VisibilityLevel>().ok())
+            .unwrap_or(VisibilityLevel::Public);
+
+        // Shared with
+        let shared_with = get_str_opt(&["shared_with", "sharedWith"])
+            .map(|s| s.split(',').filter(|t| !t.is_empty()).map(String::from).collect())
+            .unwrap_or_default();
+
+        // Owner
+        let owner = get_str_opt(&["owner"]);
+
+        Ok(Memory {
+            id: chroma_id.to_string(),
+            content: document.to_string(),
+            memory_type,
+            tags,
+            created_by,
+            created_at,
+            updated_at,
+            owner,
+            visibility,
+            shared_with,
+        })
+    }
 }
 
 #[async_trait]
@@ -633,6 +719,84 @@ impl VectorStore for ChromaStore {
 
     async fn initialize(&self) -> StoreResult<()> {
         self.ensure_collection().await?;
+        Ok(())
+    }
+
+    async fn list_all(&self) -> StoreResult<Vec<Memory>> {
+        let collection_id = self.ensure_collection().await?;
+
+        let url = format!("{}/{}/get", self.collections_path(), collection_id);
+        let body = serde_json::json!({
+            "include": ["documents", "metadatas"]
+        });
+
+        tracing::debug!("Listing all memories from collection {}", collection_id);
+
+        let resp = self.client.post(&url).json(&body).send().await?;
+
+        if !resp.status().is_success() {
+            let error = resp.text().await.unwrap_or_default();
+            return Err(StoreError::QueryFailed(format!(
+                "Failed to list memories: {}",
+                error
+            )));
+        }
+
+        let result: ChromaGetResult = resp.json().await?;
+
+        let mut memories = Vec::new();
+        for (i, chroma_id) in result.ids.iter().enumerate() {
+            let document = result.documents.get(i).and_then(|d| d.as_ref());
+            let metadata = result.metadatas.get(i).and_then(|m| m.as_ref());
+
+            if let (Some(doc), Some(meta)) = (document, metadata) {
+                // Try to parse with our format first
+                match Self::metadata_to_memory(doc, meta) {
+                    Ok(memory) => memories.push(memory),
+                    Err(_) => {
+                        // Fall back to legacy format (from TypeScript berry)
+                        match Self::legacy_metadata_to_memory(chroma_id, doc, meta) {
+                            Ok(memory) => memories.push(memory),
+                            Err(e) => {
+                                tracing::warn!("Failed to parse memory {}: {}", chroma_id, e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        tracing::info!("Listed {} memories", memories.len());
+        Ok(memories)
+    }
+
+    async fn delete_collection(&self) -> StoreResult<()> {
+        let collection_id = self.ensure_collection().await?;
+
+        let url = format!("{}/{}", self.collections_path(), collection_id);
+
+        tracing::warn!("Deleting collection {} ({})", self.collection_name, collection_id);
+
+        let resp = self.client.delete(&url).send().await?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let error = resp.text().await.unwrap_or_default();
+
+            // 405 means deletion not allowed (e.g., ChromaDB Cloud)
+            if status.as_u16() == 405 {
+                return Err(StoreError::QueryFailed(
+                    "Collection deletion not allowed via API. Please delete manually through the dashboard.".to_string()
+                ));
+            }
+
+            return Err(StoreError::QueryFailed(format!(
+                "Failed to delete collection (HTTP {}): {}",
+                status, error
+            )));
+        }
+
+        tracing::info!("Collection deleted successfully");
         Ok(())
     }
 }

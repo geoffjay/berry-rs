@@ -144,6 +144,17 @@ enum Commands {
         #[arg(long)]
         force: bool,
     },
+
+    /// Migrate memories to a new collection with current embedding model
+    Migrate {
+        /// Dry run - only show what would be migrated
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Target collection name (defaults to <current>_migrated)
+        #[arg(long = "collection")]
+        new_collection: Option<String>,
+    },
 }
 
 /// Parse memory type from string.
@@ -264,6 +275,17 @@ async fn main() -> Result<()> {
         Some(Commands::Init { force }) => {
             let args = commands::init::InitArgs { force };
             commands::init(args).await
+        }
+
+        Some(Commands::Migrate {
+            dry_run,
+            new_collection,
+        }) => {
+            let args = commands::migrate::MigrateArgs {
+                dry_run,
+                new_collection,
+            };
+            commands::migrate(args).await
         }
 
         None => {
