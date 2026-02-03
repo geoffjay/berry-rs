@@ -10,7 +10,9 @@
 [codecov-badge]: https://codecov.io/gh/geoffjay/berry-rs/graph/badge.svg?token=knPW8TUmoJ
 [codecov-url]: https://codecov.io/gh/geoffjay/berry-rs
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[mit-url]: https://github.com/cgbur/badge-maker/blob/master/LICENSE
+[mit-url]: https://github.com/geoffjay/berry-rs/blob/main/LICENSE-MIT
+[apache-badge]: https://img.shields.io/badge/License-Apache_2.0-yellowgreen.svg
+[apache-url]: https://github.com/geoffjay/berry-rs/blob/main/LICENSE-APACHE
 
 # Berry
 
