@@ -424,17 +424,43 @@ impl ChromaStore {
             .and_then(|s| s.parse::<MemoryType>().ok())
             .unwrap_or(MemoryType::Information);
 
-        // Tags: try comma-separated string or JSON array
+        // Tags: try JSON array string, comma-separated string, or JSON array
+        // Handle legacy data corruption where JSON array string was incorrectly split and stored
         let tags = if let Some(tags_val) = metadata.get("tags") {
             if let Some(s) = tags_val.as_str() {
-                s.split(',')
-                    .filter(|t| !t.is_empty())
-                    .map(String::from)
-                    .collect()
+                // First try to parse as JSON array (legacy TypeScript format stored tags as JSON string)
+                if s.starts_with('[') {
+                    serde_json::from_str::<Vec<String>>(s).unwrap_or_else(|_| {
+                        // Fall back to comma-separated
+                        s.split(',')
+                            .filter(|t| !t.is_empty())
+                            .map(String::from)
+                            .collect()
+                    })
+                } else {
+                    // Plain comma-separated string
+                    s.split(',')
+                        .filter(|t| !t.is_empty())
+                        .map(String::from)
+                        .collect()
+                }
             } else if let Some(arr) = tags_val.as_array() {
-                arr.iter()
+                // Get raw string values from array
+                let raw_tags: Vec<String> = arr
+                    .iter()
                     .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
+                    .collect();
+
+                // Check if this looks like corrupted data (fragments of a JSON array string)
+                // e.g., ["[\"mentor\"", "\"staff\"", "\"assignment\"]"]
+                // This happens when legacy code stored JSON array as comma-split fragments
+                if !raw_tags.is_empty() && raw_tags[0].starts_with("[\"") {
+                    // Reassemble the corrupted JSON array string and parse it
+                    let reassembled = raw_tags.join(",");
+                    serde_json::from_str::<Vec<String>>(&reassembled).unwrap_or(raw_tags)
+                } else {
+                    raw_tags
+                }
             } else {
                 vec![]
             }
