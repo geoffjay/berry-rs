@@ -845,9 +845,11 @@ impl VectorStore for ChromaStore {
     }
 
     async fn delete_collection(&self) -> StoreResult<()> {
+        // Verify the collection exists first
         let collection_id = self.ensure_collection().await?;
 
-        let url = format!("{}/{}", self.collections_path(), collection_id);
+        // ChromaDB v1 API expects collection name, not ID, for deletion
+        let url = format!("{}/{}", self.collections_path(), self.collection_name);
 
         tracing::warn!(
             "Deleting collection {} ({})",

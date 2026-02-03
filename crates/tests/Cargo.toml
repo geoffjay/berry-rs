@@ -1,0 +1,59 @@
+[package]
+name = "berry-tests"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+publish = false
+
+# This crate exists only for integration tests
+# It has no library, only test binaries
+
+[dependencies]
+# Internal crates
+berry = { workspace = true }
+berry-server = { path = "../server" }
+# Note: berry-cli is not a dependency because it has no lib target.
+# Run `cargo build` before `cargo test` to ensure the berry binary exists.
+
+# Async runtime
+tokio = { workspace = true }
+
+# Async trait support
+async-trait = { workspace = true }
+
+# HTTP client for testing
+reqwest = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Testcontainers for spinning up real services
+testcontainers = { version = "0.23", features = ["http_wait"] }
+
+# Assertions and test utilities
+assert_cmd = "2.0"
+predicates = "3.1"
+
+# Temp files for config
+tempfile = "3.16"
+
+# UUID for test collection names
+uuid = { workspace = true }
+
+# Tracing for test debugging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[[test]]
+name = "server_api"
+path = "tests/server_api.rs"
+
+[[test]]
+name = "cli"
+path = "tests/cli.rs"
+
+[[test]]
+name = "containers"
+path = "tests/containers.rs"

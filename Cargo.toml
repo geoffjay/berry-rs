@@ -1,6 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["crates/berry", "crates/cli", "crates/mcp", "crates/server"]
+members = [
+  "crates/berry",
+  "crates/cli",
+  "crates/mcp",
+  "crates/server",
+  "crates/tests",
+]
 
 [workspace.package]
 version = "0.2.0"
@@ -32,4 +38,6 @@ schemars = { version = "0.8", features = ["chrono"] }
 directories = "6.0"
 
 # Local embedding support (optional)
-embed_anything = { version = "=0.6.4", default-features = false, features = ["rustls-tls"] }
+embed_anything = { version = "=0.6.4", default-features = false, features = [
+  "rustls-tls",
+] }

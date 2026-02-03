@@ -1,0 +1,8 @@
+[test_config]
+name = "berry"
+# Don't use all-features as local-embeddings requires CUDA/Metal
+# features = ["local-embeddings"] # Uncomment to test local embeddings (requires Metal on macOS)
+workspace = true
+# Exclude integration tests - they require external services (containers) and pre-built binaries
+exclude-files = ["crates/tests/*"]
+exclude = ["berry-tests"]
