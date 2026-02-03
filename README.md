@@ -1,3 +1,5 @@
+[![CI](https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml) [![Release](https://github.com/geoffjay/berry-rs/actions/workflows/release.yml/badge.svg)](https://github.com/geoffjay/berry-rs/actions/workflows/release.yml) [![codecov](https://codecov.io/gh/geoffjay/berry-rs/graph/badge.svg?token=knPW8TUmoJ)](https://codecov.io/gh/geoffjay/berry-rs)
+
 > [!WARNING]
 > Berry is in a Beta state, it's safe to use but breaking changes are possible.
 
