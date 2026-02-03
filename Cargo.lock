@@ -456,7 +456,7 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "berry"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -478,7 +478,7 @@ dependencies = [
 
 [[package]]
 name = "berry-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "berry",
@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "berry-mcp"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "berry",
@@ -519,7 +519,7 @@ dependencies = [
 
 [[package]]
 name = "berry-server"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -542,7 +542,7 @@ dependencies = [
 
 [[package]]
 name = "berry-tests"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "assert_cmd",
  "async-trait",
