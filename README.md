@@ -2,6 +2,7 @@
 [![Release][release-badge]][release-url]
 [![codecov][codecov-badge]][codecov-url]
 [![MIT licensed][mit-badge]][mit-url]
+[![Apache licensed][apache-badge]][apache-url]
 
 [ci-badge]: https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml
