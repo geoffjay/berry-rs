@@ -300,11 +300,13 @@ Berry requires an embedding service for semantic search. Embeddings convert text
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `EMBEDDING_PROVIDER` | Embedding provider (`openai`) | `openai` |
+| `EMBEDDING_PROVIDER` | Embedding provider (`openai`, `local`*) | `openai` |
 | `EMBEDDING_MODEL` | Model name | `text-embedding-3-small` |
-| `EMBEDDING_BASE_URL` | API base URL | `https://api.openai.com/v1` |
-| `EMBEDDING_API_KEY` | API key (optional for local services) | (none) |
+| `EMBEDDING_BASE_URL` | API base URL (not used for `local`) | `https://api.openai.com/v1` |
+| `EMBEDDING_API_KEY` | API key (not needed for `local`) | (none) |
 | `OPENAI_API_KEY` | Fallback API key if `EMBEDDING_API_KEY` not set | (none) |
+
+\* The `local` provider requires Berry to be compiled with the `local-embeddings` feature.
 
 ### Using OpenAI Embeddings
 
@@ -355,6 +357,94 @@ Collection expecting embedding with dimension of 384, got 768
 ```
 
 You need to migrate your data to a new collection. See the [migrate command](./cli.md#migrate) for details.
+
+### Using Local Embeddings (embed_anything)
+
+Berry supports fully local, offline embedding generation using the `embed_anything` crate. This requires no external API calls or services.
+
+> **Note**: Local embeddings require Berry to be compiled with the `local-embeddings` feature flag. Pre-built releases may not include this feature.
+
+#### Enabling Local Embeddings
+
+When building from source, enable the feature:
+
+```bash
+# CPU-only (works on all platforms)
+cargo build --release -p berry-cli -p berry-server --features local-embeddings
+
+# With Metal GPU acceleration (macOS only)
+cargo build --release -p berry-cli -p berry-server --features local-embeddings-metal
+
+# With CUDA GPU acceleration (requires NVIDIA GPU + CUDA toolkit)
+cargo build --release -p berry-cli -p berry-server --features local-embeddings-cuda
+
+# With Accelerate framework (macOS only)
+cargo build --release -p berry-cli -p berry-server --features local-embeddings-accelerate
+```
+
+#### Configuration
+
+```bash
+export EMBEDDING_PROVIDER=local
+export EMBEDDING_MODEL=minilm
+```
+
+Or in the config file:
+
+```jsonc
+{
+  "embedding": {
+    "provider": "local",
+    "model": "minilm"
+  }
+}
+```
+
+#### Supported Models
+
+You can use shorthand aliases or full HuggingFace model IDs:
+
+| Alias | Full Model ID | Dimensions |
+|-------|---------------|------------|
+| `jina-small` | `jinaai/jina-embeddings-v2-small-en` | 512 |
+| `jina-base` | `jinaai/jina-embeddings-v2-base-en` | 768 |
+| `minilm` | `sentence-transformers/all-MiniLM-L6-v2` | 384 |
+| `bge-small` | `BAAI/bge-small-en-v1.5` | 384 |
+| `bge-base` | `BAAI/bge-base-en-v1.5` | 768 |
+
+You can also specify any HuggingFace model ID directly:
+
+```bash
+export EMBEDDING_MODEL=sentence-transformers/all-mpnet-base-v2
+```
+
+#### Model Cache
+
+Models are downloaded from HuggingFace on first use and cached locally:
+
+| Platform | Default Cache Location |
+|----------|----------------------|
+| All | `~/.cache/huggingface/` |
+
+Override the cache location with the `HF_HOME` environment variable:
+
+```bash
+export HF_HOME=/path/to/cache
+```
+
+#### Comparison with Other Providers
+
+| Provider | Requires API Key | Requires Network | GPU Support |
+|----------|-----------------|------------------|-------------|
+| `openai` | Yes | Yes | N/A (cloud) |
+| `openai` + Ollama | No | No (after model download) | Yes |
+| `local` | No | No (after model download) | Yes (Metal/CUDA) |
+
+Local embeddings are ideal for:
+- Air-gapped or offline environments
+- Avoiding API costs
+- Privacy-sensitive applications
+- Development and testing
 
 ### Configuration File
 
