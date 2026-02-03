@@ -93,10 +93,10 @@ impl BerryMcpClient {
         let memory = response.memory;
 
         // Filter by visibility if as_actor is provided
-        if let (Some(mem), Some(actor)) = (&memory, as_actor) {
-            if !mem.is_visible_to(Some(actor)) {
-                return Ok(None);
-            }
+        if let (Some(mem), Some(actor)) = (&memory, as_actor)
+            && !mem.is_visible_to(Some(actor))
+        {
+            return Ok(None);
         }
 
         Ok(memory)
@@ -135,6 +135,7 @@ impl BerryMcpClient {
     }
 
     /// Search for memories.
+    #[allow(clippy::too_many_arguments)]
     pub async fn search(
         &self,
         query: String,

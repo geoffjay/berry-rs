@@ -24,7 +24,7 @@ use tools::{
 };
 
 /// MCP server configuration options.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct McpConfig {
     /// Berry server URL.
     pub server_url: Option<String>,
@@ -32,18 +32,10 @@ pub struct McpConfig {
     pub verbose: bool,
 }
 
-impl Default for McpConfig {
-    fn default() -> Self {
-        Self {
-            server_url: None,
-            verbose: false,
-        }
-    }
-}
-
 /// JSON-RPC 2.0 request.
 #[derive(Debug, Deserialize)]
 struct JsonRpcRequest {
+    #[allow(dead_code)]
     jsonrpc: String,
     id: Option<Value>,
     method: String,

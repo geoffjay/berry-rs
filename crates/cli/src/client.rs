@@ -31,6 +31,7 @@ impl BerryClient {
     }
 
     /// Check server health.
+    #[allow(dead_code)]
     pub async fn health(&self) -> Result<HealthResponse> {
         let url = format!("{}/health", self.base_url);
         let resp = self
@@ -133,6 +134,7 @@ impl BerryClient {
     }
 
     /// Update memory visibility.
+    #[allow(dead_code)]
     pub async fn update_visibility(
         &self,
         id: &str,

@@ -109,6 +109,7 @@ pub fn format_memory_table(memories: &[Memory]) -> String {
 }
 
 /// Format memory type for display.
+#[allow(dead_code)]
 pub fn format_memory_type(memory_type: &MemoryType) -> String {
     match memory_type {
         MemoryType::Question => "question".blue().to_string(),

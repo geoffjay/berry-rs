@@ -19,15 +19,16 @@ pub async fn run(args: InitArgs) -> Result<()> {
     print_info(&format!("Config directory: {}", config_dir.display()));
 
     // Check if config file already exists
-    if let Some(path) = config_path() {
-        if path.exists() && !args.force {
-            print_info(&format!(
-                "Config file already exists at: {}",
-                path.display()
-            ));
-            print_info("Use --force to overwrite.");
-            return Ok(());
-        }
+    if let Some(path) = config_path()
+        && path.exists()
+        && !args.force
+    {
+        print_info(&format!(
+            "Config file already exists at: {}",
+            path.display()
+        ));
+        print_info("Use --force to overwrite.");
+        return Ok(());
     }
 
     // Write default config
