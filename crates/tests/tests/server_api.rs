@@ -2,8 +2,8 @@
 //!
 //! Tests the Berry server against a real ChromaDB instance.
 
-use berry::types::{CreateMemoryRequest, MemoryType, SearchRequest, VisibilityLevel};
 use berry::store::VectorStore;
+use berry::types::{CreateMemoryRequest, MemoryType, SearchRequest, VisibilityLevel};
 use berry_tests::fixtures::TestEnvironment;
 
 /// Test creating a memory through the store.
@@ -21,7 +21,10 @@ async fn test_create_memory() {
         shared_with: vec![],
     };
 
-    let memory = env.store.create(request).await
+    let memory = env
+        .store
+        .create(request)
+        .await
         .expect("Failed to create memory");
 
     assert!(memory.id.starts_with("mem_"));
@@ -47,11 +50,17 @@ async fn test_get_memory() {
         shared_with: vec![],
     };
 
-    let created = env.store.create(request).await
+    let created = env
+        .store
+        .create(request)
+        .await
         .expect("Failed to create memory");
 
     // Retrieve it
-    let retrieved = env.store.get(&created.id).await
+    let retrieved = env
+        .store
+        .get(&created.id)
+        .await
         .expect("Failed to get memory")
         .expect("Memory not found");
 
@@ -65,7 +74,10 @@ async fn test_get_memory() {
 async fn test_get_nonexistent_memory() {
     let env = TestEnvironment::new().await;
 
-    let result = env.store.get("mem_nonexistent_id").await
+    let result = env
+        .store
+        .get("mem_nonexistent_id")
+        .await
         .expect("Query failed");
 
     assert!(result.is_none());
@@ -87,22 +99,34 @@ async fn test_delete_memory() {
         shared_with: vec![],
     };
 
-    let memory = env.store.create(request).await
+    let memory = env
+        .store
+        .create(request)
+        .await
         .expect("Failed to create memory");
 
     // Verify it exists
-    let exists = env.store.get(&memory.id).await
+    let exists = env
+        .store
+        .get(&memory.id)
+        .await
         .expect("Query failed")
         .is_some();
     assert!(exists);
 
     // Delete it
-    let deleted = env.store.delete(&memory.id).await
+    let deleted = env
+        .store
+        .delete(&memory.id)
+        .await
         .expect("Failed to delete memory");
     assert!(deleted);
 
     // Verify it's gone
-    let exists = env.store.get(&memory.id).await
+    let exists = env
+        .store
+        .get(&memory.id)
+        .await
         .expect("Query failed")
         .is_some();
     assert!(!exists);
@@ -124,26 +148,33 @@ async fn test_update_visibility() {
         shared_with: vec![],
     };
 
-    let memory = env.store.create(request).await
+    let memory = env
+        .store
+        .create(request)
+        .await
         .expect("Failed to create memory");
     assert_eq!(memory.visibility, VisibilityLevel::Public);
 
     // Update to shared
-    let updated = env.store.update_visibility(
-        &memory.id,
-        VisibilityLevel::Shared,
-        Some(vec!["alice".to_string(), "bob".to_string()]),
-    ).await.expect("Failed to update visibility");
+    let updated = env
+        .store
+        .update_visibility(
+            &memory.id,
+            VisibilityLevel::Shared,
+            Some(vec!["alice".to_string(), "bob".to_string()]),
+        )
+        .await
+        .expect("Failed to update visibility");
 
     assert_eq!(updated.visibility, VisibilityLevel::Shared);
     assert_eq!(updated.shared_with, vec!["alice", "bob"]);
 
     // Update to private
-    let updated = env.store.update_visibility(
-        &memory.id,
-        VisibilityLevel::Private,
-        None,
-    ).await.expect("Failed to update visibility");
+    let updated = env
+        .store
+        .update_visibility(&memory.id, VisibilityLevel::Private, None)
+        .await
+        .expect("Failed to update visibility");
 
     assert_eq!(updated.visibility, VisibilityLevel::Private);
 }
@@ -164,12 +195,14 @@ async fn test_list_all_memories() {
             visibility: VisibilityLevel::Public,
             shared_with: vec![],
         };
-        env.store.create(request).await.expect("Failed to create memory");
+        env.store
+            .create(request)
+            .await
+            .expect("Failed to create memory");
     }
 
     // List all
-    let memories = env.store.list_all().await
-        .expect("Failed to list memories");
+    let memories = env.store.list_all().await.expect("Failed to list memories");
 
     assert_eq!(memories.len(), 3);
 }
@@ -197,7 +230,10 @@ async fn test_search_memories() {
             visibility: VisibilityLevel::Public,
             shared_with: vec![],
         };
-        env.store.create(request).await.expect("Failed to create memory");
+        env.store
+            .create(request)
+            .await
+            .expect("Failed to create memory");
     }
 
     // Search for "Rust"
@@ -207,7 +243,10 @@ async fn test_search_memories() {
         ..Default::default()
     };
 
-    let results = env.store.search(search_request).await
+    let results = env
+        .store
+        .search(search_request)
+        .await
         .expect("Search failed");
 
     // With NoOp embeddings, search returns all memories (no semantic filtering)
@@ -220,8 +259,7 @@ async fn test_search_memories() {
 async fn test_health_check() {
     let env = TestEnvironment::new().await;
 
-    let healthy = env.store.health_check().await
-        .expect("Health check failed");
+    let healthy = env.store.health_check().await.expect("Health check failed");
 
     assert!(healthy);
 }
@@ -241,18 +279,26 @@ async fn test_delete_collection() {
         visibility: VisibilityLevel::Public,
         shared_with: vec![],
     };
-    env.store.create(request).await.expect("Failed to create memory");
+    env.store
+        .create(request)
+        .await
+        .expect("Failed to create memory");
 
     // Verify it exists
     let memories = env.store.list_all().await.expect("Failed to list");
     assert_eq!(memories.len(), 1);
 
     // Delete collection
-    env.store.delete_collection().await
+    env.store
+        .delete_collection()
+        .await
         .expect("Failed to delete collection");
 
     // Re-initialize to recreate collection
-    env.store.initialize().await.expect("Failed to reinitialize");
+    env.store
+        .initialize()
+        .await
+        .expect("Failed to reinitialize");
 
     // Verify it's empty
     let memories = env.store.list_all().await.expect("Failed to list");
@@ -281,11 +327,17 @@ async fn test_memory_types() {
             shared_with: vec![],
         };
 
-        let memory = env.store.create(request).await
+        let memory = env
+            .store
+            .create(request)
+            .await
             .expect("Failed to create memory");
         assert_eq!(memory.memory_type, memory_type);
 
-        let retrieved = env.store.get(&memory.id).await
+        let retrieved = env
+            .store
+            .get(&memory.id)
+            .await
             .expect("Failed to get memory")
             .expect("Memory not found");
         assert_eq!(retrieved.memory_type, memory_type);
@@ -307,12 +359,18 @@ async fn test_tags() {
         shared_with: vec![],
     };
 
-    let memory = env.store.create(request).await
+    let memory = env
+        .store
+        .create(request)
+        .await
         .expect("Failed to create memory");
 
     assert_eq!(memory.tags, vec!["tag1", "tag2", "tag3"]);
 
-    let retrieved = env.store.get(&memory.id).await
+    let retrieved = env
+        .store
+        .get(&memory.id)
+        .await
         .expect("Failed to get memory")
         .expect("Memory not found");
 

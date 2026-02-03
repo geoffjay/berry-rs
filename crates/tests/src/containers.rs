@@ -3,9 +3,9 @@
 //! Uses testcontainers to spin up real service instances for testing.
 
 use testcontainers::{
+    ContainerAsync, GenericImage, ImageExt,
     core::{ContainerPort, WaitFor},
     runners::AsyncRunner,
-    ContainerAsync, GenericImage, ImageExt,
 };
 
 /// Default ChromaDB port.

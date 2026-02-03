@@ -125,10 +125,7 @@ fn test_migrate_help() {
 /// Test invalid subcommand.
 #[test]
 fn test_invalid_subcommand() {
-    berry_cmd()
-        .arg("invalid_command")
-        .assert()
-        .failure();
+    berry_cmd().arg("invalid_command").assert().failure();
 }
 
 /// Test JSON output format flag.
@@ -156,8 +153,10 @@ fn test_cli_remember() {
         .args([
             "remember",
             "Test memory from CLI integration test",
-            "--tags", "cli,test,integration",
-            "--by", "cli_test",
+            "--tags",
+            "cli,test,integration",
+            "--by",
+            "cli_test",
         ])
         .assert()
         .success()
@@ -170,17 +169,13 @@ fn test_cli_remember() {
 fn test_cli_recall() {
     // First create a memory
     let output = berry_cmd()
-        .args([
-            "--format", "json",
-            "remember",
-            "Memory to recall",
-        ])
+        .args(["--format", "json", "remember", "Memory to recall"])
         .output()
         .expect("Failed to create memory");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Failed to parse JSON response");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Failed to parse JSON response");
 
     let memory_id = response["memory"]["id"]
         .as_str()
@@ -199,11 +194,7 @@ fn test_cli_recall() {
 #[ignore = "Requires running server"]
 fn test_cli_search() {
     berry_cmd()
-        .args([
-            "search",
-            "test query",
-            "--limit", "5",
-        ])
+        .args(["search", "test query", "--limit", "5"])
         .assert()
         .success();
 }
@@ -214,17 +205,13 @@ fn test_cli_search() {
 fn test_cli_forget() {
     // First create a memory
     let output = berry_cmd()
-        .args([
-            "--format", "json",
-            "remember",
-            "Memory to delete",
-        ])
+        .args(["--format", "json", "remember", "Memory to delete"])
         .output()
         .expect("Failed to create memory");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let response: serde_json::Value = serde_json::from_str(&stdout)
-        .expect("Failed to parse JSON response");
+    let response: serde_json::Value =
+        serde_json::from_str(&stdout).expect("Failed to parse JSON response");
 
     let memory_id = response["memory"]["id"]
         .as_str()

@@ -27,24 +27,9 @@ const MODEL_ALIASES: &[(&str, &str, &str, usize)] = &[
         "sentence-transformers/all-MiniLM-L12-v2",
         384,
     ),
-    (
-        "bge-small",
-        "bert",
-        "BAAI/bge-small-en-v1.5",
-        384,
-    ),
-    (
-        "bge-base",
-        "bert",
-        "BAAI/bge-base-en-v1.5",
-        768,
-    ),
-    (
-        "bge-large",
-        "bert",
-        "BAAI/bge-large-en-v1.5",
-        1024,
-    ),
+    ("bge-small", "bert", "BAAI/bge-small-en-v1.5", 384),
+    ("bge-base", "bert", "BAAI/bge-base-en-v1.5", 768),
+    ("bge-large", "bert", "BAAI/bge-large-en-v1.5", 1024),
     (
         "jina-small",
         "jina",
@@ -57,12 +42,7 @@ const MODEL_ALIASES: &[(&str, &str, &str, usize)] = &[
         "jinaai/jina-embeddings-v2-base-en",
         768,
     ),
-    (
-        "nomic",
-        "bert",
-        "nomic-ai/nomic-embed-text-v1.5",
-        768,
-    ),
+    ("nomic", "bert", "nomic-ai/nomic-embed-text-v1.5", 768),
 ];
 
 /// Local embedding service using embed_anything.
@@ -134,11 +114,7 @@ impl EmbeddingService for LocalEmbedding {
 
         let embeddings: Vec<Vec<f32>> = result
             .into_iter()
-            .map(|e| {
-                e.embedding
-                    .to_dense()
-                    .unwrap_or_default()
-            })
+            .map(|e| e.embedding.to_dense().unwrap_or_default())
             .collect();
 
         tracing::debug!(
@@ -178,7 +154,10 @@ fn resolve_model(model: &str) -> StoreResult<(String, String, usize)> {
          For optimal results, use a known model: {:?}",
         model,
         architecture,
-        MODEL_ALIASES.iter().map(|(a, _, _, _)| *a).collect::<Vec<_>>()
+        MODEL_ALIASES
+            .iter()
+            .map(|(a, _, _, _)| *a)
+            .collect::<Vec<_>>()
     );
 
     Ok((architecture, model.to_string(), 384))
@@ -212,7 +191,10 @@ pub fn get_model_dimension(model: &str) -> Option<usize> {
 /// Get all supported model aliases.
 #[allow(dead_code)]
 pub fn supported_model_aliases() -> Vec<&'static str> {
-    MODEL_ALIASES.iter().map(|(alias, _, _, _)| *alias).collect()
+    MODEL_ALIASES
+        .iter()
+        .map(|(alias, _, _, _)| *alias)
+        .collect()
 }
 
 #[cfg(test)]
@@ -309,7 +291,10 @@ mod tests {
 
     #[test]
     fn test_infer_architecture_jina() {
-        assert_eq!(infer_architecture("jinaai/jina-embeddings-v2-small-en"), "jina");
+        assert_eq!(
+            infer_architecture("jinaai/jina-embeddings-v2-small-en"),
+            "jina"
+        );
     }
 
     #[test]
@@ -333,8 +318,14 @@ mod tests {
 
     #[test]
     fn test_get_model_dimension_full_id() {
-        assert_eq!(get_model_dimension("sentence-transformers/all-MiniLM-L6-v2"), Some(384));
-        assert_eq!(get_model_dimension("jinaai/jina-embeddings-v2-small-en"), Some(512));
+        assert_eq!(
+            get_model_dimension("sentence-transformers/all-MiniLM-L6-v2"),
+            Some(384)
+        );
+        assert_eq!(
+            get_model_dimension("jinaai/jina-embeddings-v2-small-en"),
+            Some(512)
+        );
     }
 
     #[test]

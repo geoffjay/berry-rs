@@ -96,7 +96,10 @@ impl TestEnvironment {
         let store = ChromaStore::new(&config.chroma, embedding_service);
 
         // Initialize the store
-        store.initialize().await.expect("Failed to initialize store");
+        store
+            .initialize()
+            .await
+            .expect("Failed to initialize store");
 
         Self {
             chroma_container,
@@ -121,7 +124,10 @@ impl TestEnvironment {
 
         let embedding_service = Arc::new(MockEmbedding::new(TEST_EMBEDDING_DIMENSION));
         let store = ChromaStore::new(&config.chroma, embedding_service);
-        store.initialize().await.expect("Failed to initialize store");
+        store
+            .initialize()
+            .await
+            .expect("Failed to initialize store");
 
         Self {
             chroma_container,
@@ -140,10 +146,9 @@ impl TestEnvironment {
     /// Write the configuration to a file for CLI tests.
     pub fn write_config(&self) -> PathBuf {
         let config_path = self.config_path();
-        let config_json = serde_json::to_string_pretty(&self.config)
-            .expect("Failed to serialize config");
-        std::fs::write(&config_path, config_json)
-            .expect("Failed to write config file");
+        let config_json =
+            serde_json::to_string_pretty(&self.config).expect("Failed to serialize config");
+        std::fs::write(&config_path, config_json).expect("Failed to write config file");
         config_path
     }
 }

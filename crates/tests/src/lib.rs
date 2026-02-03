@@ -6,5 +6,5 @@
 pub mod containers;
 pub mod fixtures;
 
-pub use containers::{ChromaContainer, get_chroma_url, start_chroma, CHROMA_PORT};
-pub use fixtures::{create_test_config, TestEnvironment};
+pub use containers::{CHROMA_PORT, ChromaContainer, get_chroma_url, start_chroma};
+pub use fixtures::{TestEnvironment, create_test_config};
