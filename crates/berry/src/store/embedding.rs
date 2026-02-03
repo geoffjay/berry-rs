@@ -195,12 +195,21 @@ pub fn create_embedding_service(
             let service = OpenAIEmbedding::new(config)?;
             Ok(Box::new(service))
         }
+        #[cfg(feature = "local-embeddings")]
+        "local" => {
+            let service = super::local_embedding::LocalEmbedding::new(config)?;
+            Ok(Box::new(service))
+        }
+        #[cfg(not(feature = "local-embeddings"))]
+        "local" => Err(StoreError::InitializationFailed(
+            "Local embeddings not available. Rebuild with 'local-embeddings' feature.".into(),
+        )),
         "none" | "" => {
             tracing::warn!("No embedding provider configured. Semantic search will not work.");
             Ok(Box::new(NoOpEmbedding::new()))
         }
         provider => Err(StoreError::InitializationFailed(format!(
-            "Unknown embedding provider: {}. Supported: openai, none",
+            "Unknown embedding provider: {}. Supported: openai, local, none",
             provider
         ))),
     }
@@ -405,5 +414,25 @@ mod tests {
         let result = service.embed(&["test".to_string()]).await;
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("not configured"));
+    }
+
+    #[test]
+    #[cfg(not(feature = "local-embeddings"))]
+    fn test_local_provider_without_feature() {
+        let config = EmbeddingConfig {
+            provider: "local".to_string(),
+            api_key: None,
+            model: "minilm".to_string(),
+            base_url: None,
+        };
+        let result = create_embedding_service(&config);
+        match result {
+            Err(e) => {
+                let msg = e.to_string();
+                assert!(msg.contains("Local embeddings not available"));
+                assert!(msg.contains("local-embeddings"));
+            }
+            Ok(_) => panic!("Expected error when local-embeddings feature is disabled"),
+        }
     }
 }

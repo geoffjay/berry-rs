@@ -5,6 +5,13 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[features]
+default = []
+local-embeddings = ["dep:embed_anything"]
+local-embeddings-metal = ["local-embeddings", "embed_anything/metal"]
+local-embeddings-cuda = ["local-embeddings", "embed_anything/cuda"]
+local-embeddings-accelerate = ["local-embeddings", "embed_anything/accelerate"]
+
 [dependencies]
 # Serialization
 serde = { workspace = true }
@@ -38,6 +45,9 @@ schemars = { version = "0.8", features = ["chrono"] }
 
 # Async trait support
 async-trait = "0.1"
+
+# Local embeddings (optional)
+embed_anything = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"

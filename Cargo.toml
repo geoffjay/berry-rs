@@ -30,3 +30,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 async-trait = "0.1"
 schemars = { version = "0.8", features = ["chrono"] }
 directories = "6.0"
+
+# Local embedding support (optional)
+embed_anything = { version = "=0.6.4", default-features = false, features = ["rustls-tls"] }

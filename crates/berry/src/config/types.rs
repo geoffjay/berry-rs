@@ -97,7 +97,7 @@ impl Default for ChromaConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct EmbeddingConfig {
-    /// Embedding provider: "openai", "cohere", or "none"
+    /// Embedding provider: "openai", "local" (requires local-embeddings feature), or "none"
     pub provider: String,
     /// API key for the embedding service
     #[serde(rename = "apiKey")]
