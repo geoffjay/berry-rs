@@ -39,6 +39,7 @@ jobs:
         with:
           files: ./cobertura.xml
           fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   fmt:
     name: Format
