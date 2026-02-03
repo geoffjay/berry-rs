@@ -223,8 +223,190 @@ mod tests {
     }
 
     #[test]
+    fn test_model_dimensions_large() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: Some("test".to_string()),
+            model: "text-embedding-3-large".to_string(),
+            base_url: None,
+        };
+        let service = OpenAIEmbedding::new(&config).unwrap();
+        assert_eq!(service.dimension(), 3072);
+    }
+
+    #[test]
+    fn test_model_dimensions_ada() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: Some("test".to_string()),
+            model: "text-embedding-ada-002".to_string(),
+            base_url: None,
+        };
+        let service = OpenAIEmbedding::new(&config).unwrap();
+        assert_eq!(service.dimension(), 1536);
+    }
+
+    #[test]
+    fn test_model_dimensions_ollama_nomic() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: Some("test".to_string()),
+            model: "nomic-embed-text".to_string(),
+            base_url: Some("http://localhost:11434/v1".to_string()),
+        };
+        let service = OpenAIEmbedding::new(&config).unwrap();
+        assert_eq!(service.dimension(), 768);
+    }
+
+    #[test]
+    fn test_model_dimensions_ollama_mxbai() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: None,
+            model: "mxbai-embed-large".to_string(),
+            base_url: Some("http://localhost:11434/v1".to_string()),
+        };
+        let service = OpenAIEmbedding::new(&config).unwrap();
+        assert_eq!(service.dimension(), 1024);
+    }
+
+    #[test]
+    fn test_model_dimensions_all_minilm() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: None,
+            model: "all-minilm".to_string(),
+            base_url: Some("http://127.0.0.1:11434/v1".to_string()),
+        };
+        let service = OpenAIEmbedding::new(&config).unwrap();
+        assert_eq!(service.dimension(), 384);
+    }
+
+    #[test]
+    fn test_model_dimensions_unknown_defaults() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: Some("test".to_string()),
+            model: "unknown-model".to_string(),
+            base_url: None,
+        };
+        let service = OpenAIEmbedding::new(&config).unwrap();
+        assert_eq!(service.dimension(), 1536); // Default
+    }
+
+    #[test]
     fn test_noop_embedding() {
         let service = NoOpEmbedding::new();
         assert_eq!(service.dimension(), 0);
+    }
+
+    #[test]
+    fn test_noop_embedding_default() {
+        let service = NoOpEmbedding::default();
+        assert_eq!(service.dimension(), 0);
+    }
+
+    #[test]
+    fn test_openai_requires_api_key_for_remote() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: None,
+            model: "text-embedding-3-small".to_string(),
+            base_url: None, // Remote (OpenAI)
+        };
+        let result = OpenAIEmbedding::new(&config);
+        match result {
+            Err(e) => assert!(e.to_string().contains("API key required")),
+            Ok(_) => panic!("Expected error when API key missing for remote service"),
+        }
+    }
+
+    #[test]
+    fn test_openai_no_key_required_for_localhost() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: None,
+            model: "nomic-embed-text".to_string(),
+            base_url: Some("http://localhost:11434/v1".to_string()),
+        };
+        let result = OpenAIEmbedding::new(&config);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_openai_no_key_required_for_127_0_0_1() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: None,
+            model: "nomic-embed-text".to_string(),
+            base_url: Some("http://127.0.0.1:11434/v1".to_string()),
+        };
+        let result = OpenAIEmbedding::new(&config);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_create_embedding_service_openai() {
+        let config = EmbeddingConfig {
+            provider: "openai".to_string(),
+            api_key: Some("test-key".to_string()),
+            model: "text-embedding-3-small".to_string(),
+            base_url: None,
+        };
+        let result = create_embedding_service(&config);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().dimension(), 1536);
+    }
+
+    #[test]
+    fn test_create_embedding_service_none() {
+        let config = EmbeddingConfig {
+            provider: "none".to_string(),
+            api_key: None,
+            model: String::new(),
+            base_url: None,
+        };
+        let result = create_embedding_service(&config);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().dimension(), 0);
+    }
+
+    #[test]
+    fn test_create_embedding_service_empty_provider() {
+        let config = EmbeddingConfig {
+            provider: String::new(),
+            api_key: None,
+            model: String::new(),
+            base_url: None,
+        };
+        let result = create_embedding_service(&config);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().dimension(), 0);
+    }
+
+    #[test]
+    fn test_create_embedding_service_unknown_provider() {
+        let config = EmbeddingConfig {
+            provider: "unknown_provider".to_string(),
+            api_key: None,
+            model: String::new(),
+            base_url: None,
+        };
+        let result = create_embedding_service(&config);
+        match result {
+            Err(e) => assert!(e.to_string().contains("Unknown embedding provider")),
+            Ok(_) => panic!("Expected error for unknown provider"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_noop_embed_returns_error() {
+        let service = NoOpEmbedding::new();
+        let result = service.embed(&["test".to_string()]).await;
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("not configured"));
     }
 }

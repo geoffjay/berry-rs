@@ -46,5 +46,7 @@ tower-http = { version = "0.6", features = ["cors", "trace"] }
 schemars = { workspace = true }
 
 [dev-dependencies]
+async-trait = "0.1"
 axum-test = "16"
 tokio-test = "0.4"
+http-body-util = "0.1"

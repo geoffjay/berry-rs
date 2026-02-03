@@ -969,4 +969,202 @@ mod tests {
             "https://api.trychroma.com/api/v2/tenants/my-tenant/databases/my-database/collections"
         );
     }
+
+    #[test]
+    fn test_url_trailing_slash_stripped() {
+        let config = ChromaConfig {
+            url: "http://localhost:8000/".to_string(),
+            collection: "test".to_string(),
+            provider: None,
+            api_key: None,
+            tenant: None,
+            database: None,
+        };
+        let embedding_service = Arc::new(NoOpEmbedding::new());
+        let store = ChromaStore::new(&config, embedding_service);
+        assert_eq!(
+            store.collections_path(),
+            "http://localhost:8000/api/v1/collections"
+        );
+    }
+
+    #[test]
+    fn test_legacy_metadata_to_memory_basic() {
+        let mut metadata = HashMap::new();
+        metadata.insert("type".to_string(), serde_json::json!("question"));
+        metadata.insert("tags".to_string(), serde_json::json!("tag1,tag2"));
+        metadata.insert("created_by".to_string(), serde_json::json!("testuser"));
+        metadata.insert(
+            "created_at".to_string(),
+            serde_json::json!("2024-01-15T10:30:00Z"),
+        );
+        metadata.insert(
+            "updated_at".to_string(),
+            serde_json::json!("2024-01-15T10:30:00Z"),
+        );
+        metadata.insert("visibility".to_string(), serde_json::json!("public"));
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_123", "Test content", &metadata).unwrap();
+
+        assert_eq!(memory.id, "mem_123");
+        assert_eq!(memory.content, "Test content");
+        assert_eq!(memory.memory_type, MemoryType::Question);
+        assert_eq!(memory.tags, vec!["tag1", "tag2"]);
+        assert_eq!(memory.created_by, "testuser");
+    }
+
+    #[test]
+    fn test_legacy_metadata_with_camel_case_fields() {
+        let mut metadata = HashMap::new();
+        metadata.insert("memoryType".to_string(), serde_json::json!("request"));
+        metadata.insert("createdBy".to_string(), serde_json::json!("alice"));
+        metadata.insert(
+            "createdAt".to_string(),
+            serde_json::json!("2024-01-15T10:30:00Z"),
+        );
+        metadata.insert(
+            "updatedAt".to_string(),
+            serde_json::json!("2024-01-15T11:00:00Z"),
+        );
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_456", "Request content", &metadata)
+                .unwrap();
+
+        assert_eq!(memory.memory_type, MemoryType::Request);
+        assert_eq!(memory.created_by, "alice");
+    }
+
+    #[test]
+    fn test_legacy_metadata_missing_fields_uses_defaults() {
+        let metadata = HashMap::new();
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_789", "Minimal content", &metadata)
+                .unwrap();
+
+        assert_eq!(memory.id, "mem_789");
+        assert_eq!(memory.content, "Minimal content");
+        assert_eq!(memory.memory_type, MemoryType::Information);
+        assert_eq!(memory.created_by, "unknown");
+        assert_eq!(memory.visibility, VisibilityLevel::Public);
+        assert!(memory.tags.is_empty());
+    }
+
+    #[test]
+    fn test_legacy_metadata_json_array_tags() {
+        let mut metadata = HashMap::new();
+        // Legacy TypeScript stored tags as JSON array string
+        metadata.insert(
+            "tags".to_string(),
+            serde_json::json!("[\"mentor\",\"staff\",\"assignment\"]"),
+        );
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_tags", "Tagged content", &metadata)
+                .unwrap();
+
+        assert_eq!(memory.tags, vec!["mentor", "staff", "assignment"]);
+    }
+
+    #[test]
+    fn test_legacy_metadata_corrupted_tags_array() {
+        let mut metadata = HashMap::new();
+        // Corrupted data where JSON array was incorrectly split and stored as array
+        metadata.insert(
+            "tags".to_string(),
+            serde_json::json!(["[\"mentor\"", "\"staff\"", "\"assignment\"]"]),
+        );
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_corrupt", "Content", &metadata).unwrap();
+
+        assert_eq!(memory.tags, vec!["mentor", "staff", "assignment"]);
+    }
+
+    #[test]
+    fn test_legacy_metadata_normal_tags_array() {
+        let mut metadata = HashMap::new();
+        metadata.insert(
+            "tags".to_string(),
+            serde_json::json!(["tag1", "tag2", "tag3"]),
+        );
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_normal", "Content", &metadata).unwrap();
+
+        assert_eq!(memory.tags, vec!["tag1", "tag2", "tag3"]);
+    }
+
+    #[test]
+    fn test_legacy_metadata_with_owner() {
+        let mut metadata = HashMap::new();
+        metadata.insert("owner".to_string(), serde_json::json!("project_lead"));
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_owner", "Content", &metadata).unwrap();
+
+        assert_eq!(memory.owner, Some("project_lead".to_string()));
+    }
+
+    #[test]
+    fn test_legacy_metadata_shared_with() {
+        let mut metadata = HashMap::new();
+        metadata.insert("visibility".to_string(), serde_json::json!("shared"));
+        metadata.insert(
+            "sharedWith".to_string(),
+            serde_json::json!("alice,bob,charlie"),
+        );
+
+        let memory =
+            ChromaStore::legacy_metadata_to_memory("mem_shared", "Content", &metadata).unwrap();
+
+        assert_eq!(memory.visibility, VisibilityLevel::Shared);
+        assert_eq!(memory.shared_with, vec!["alice", "bob", "charlie"]);
+    }
+
+    #[test]
+    fn test_metadata_to_memory_empty_tags() {
+        let mut metadata = HashMap::new();
+        metadata.insert("id".to_string(), serde_json::json!("mem_empty"));
+        metadata.insert("type".to_string(), serde_json::json!("information"));
+        metadata.insert("tags".to_string(), serde_json::json!(""));
+        metadata.insert("created_by".to_string(), serde_json::json!("user"));
+        metadata.insert(
+            "created_at".to_string(),
+            serde_json::json!("2024-01-15T10:30:00Z"),
+        );
+        metadata.insert(
+            "updated_at".to_string(),
+            serde_json::json!("2024-01-15T10:30:00Z"),
+        );
+        metadata.insert("visibility".to_string(), serde_json::json!("public"));
+        metadata.insert("shared_with".to_string(), serde_json::json!(""));
+
+        let memory = ChromaStore::metadata_to_memory("Content", &metadata).unwrap();
+
+        assert!(memory.tags.is_empty());
+        assert!(memory.shared_with.is_empty());
+    }
+
+    #[test]
+    fn test_memory_to_metadata_no_owner() {
+        let memory = Memory {
+            id: "mem_no_owner".to_string(),
+            content: "Content".to_string(),
+            memory_type: MemoryType::Information,
+            tags: vec![],
+            created_by: "user".to_string(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            owner: None,
+            visibility: VisibilityLevel::Public,
+            shared_with: vec![],
+        };
+
+        let metadata = ChromaStore::memory_to_metadata(&memory);
+
+        assert!(!metadata.contains_key("owner"));
+    }
 }

@@ -8,3 +8,4 @@ This document outlines the build requirements for the Berry-rs project.
 - in general modules should be leveraged to provide a clear separation of concerns
 - small, focused, multi-file implementations should be preferred over large, complex single-file implementations
 - testing is a critical part of the development process and should be done alongside implementation and used to verify
+- code coverage should be generated using the `cargo-tarpaulin` tool with the command `cargo tarpaulin --out Html --output-dir target/coverage`
