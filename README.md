@@ -1,9 +1,21 @@
-[![CI](https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml) [![Release](https://github.com/geoffjay/berry-rs/actions/workflows/release.yml/badge.svg)](https://github.com/geoffjay/berry-rs/actions/workflows/release.yml) [![codecov](https://codecov.io/gh/geoffjay/berry-rs/graph/badge.svg?token=knPW8TUmoJ)](https://codecov.io/gh/geoffjay/berry-rs)
+[![CI][ci-badge]][ci-url]
+[![Release][release-badge]][release-url]
+[![codecov][codecov-badge]][codecov-url]
+[![MIT licensed][mit-badge]][mit-url]
+
+[ci-badge]: https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/geoffjay/berry-rs/actions/workflows/ci.yml
+[release-badge]: https://github.com/geoffjay/berry-rs/actions/workflows/release.yml/badge.svg
+[release-url]: https://github.com/geoffjay/berry-rs/actions/workflows/release.yml
+[codecov-badge]: https://codecov.io/gh/geoffjay/berry-rs/graph/badge.svg?token=knPW8TUmoJ
+[codecov-url]: https://codecov.io/gh/geoffjay/berry-rs
+[mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[mit-url]: https://github.com/cgbur/badge-maker/blob/master/LICENSE
+
+# Berry
 
 > [!WARNING]
 > Berry is in a Beta state, it's safe to use but breaking changes are possible.
-
-# Berry
 
 ![Member?][logo]
 
