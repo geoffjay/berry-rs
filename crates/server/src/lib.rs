@@ -132,9 +132,9 @@ mod tests {
     use async_trait::async_trait;
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
+    use berry::error::{StoreError, StoreResult};
     use berry::store::VectorStore;
     use berry::types::{CreateMemoryRequest, Memory, MemoryType, SearchRequest, VisibilityLevel};
-    use berry::error::{StoreError, StoreResult};
     use chrono::Utc;
     use http_body_util::BodyExt;
     use std::sync::Mutex;
@@ -289,7 +289,12 @@ mod tests {
         let app = create_router(state);
 
         let response = app
-            .oneshot(Request::builder().uri("/health").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
 
@@ -307,7 +312,12 @@ mod tests {
         let app = create_router(state);
 
         let response = app
-            .oneshot(Request::builder().uri("/health").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
 
@@ -516,7 +526,12 @@ mod tests {
         let app = create_router(state);
 
         let response = app
-            .oneshot(Request::builder().uri("/schema").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::builder()
+                    .uri("/schema")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
 

@@ -404,9 +404,6 @@ mod tests {
         let service = NoOpEmbedding::new();
         let result = service.embed(&["test".to_string()]).await;
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("not configured"));
+        assert!(result.unwrap_err().to_string().contains("not configured"));
     }
 }
