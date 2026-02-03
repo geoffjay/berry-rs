@@ -12,14 +12,20 @@ use crate::types::MemoryType;
 
 /// Get the path to the config directory.
 ///
-/// Uses XDG Base Directory specification: ~/.config/berry/
+/// Returns the platform-native configuration directory:
+/// - **Linux**: `~/.config/berry/`
+/// - **macOS**: `~/Library/Application Support/berry/`
+/// - **Windows**: `%APPDATA%\berry\`
 pub fn config_dir() -> Option<PathBuf> {
     ProjectDirs::from("", "", "berry").map(|dirs| dirs.config_dir().to_path_buf())
 }
 
 /// Get the path to the config file.
 ///
-/// Returns ~/.config/berry/config.jsonc
+/// Returns the platform-native configuration file path:
+/// - **Linux**: `~/.config/berry/config.jsonc`
+/// - **macOS**: `~/Library/Application Support/berry/config.jsonc`
+/// - **Windows**: `%APPDATA%\berry\config.jsonc`
 pub fn config_path() -> Option<PathBuf> {
     config_dir().map(|dir| dir.join("config.jsonc"))
 }
@@ -103,22 +109,54 @@ fn strip_jsonc_comments(content: &str) -> String {
     result
 }
 
+/// Legacy XDG config path for macOS migration support.
+///
+/// On macOS, earlier versions of Berry used `~/.config/berry/config.jsonc` (XDG style)
+/// instead of the platform-native `~/Library/Application Support/berry/config.jsonc`.
+/// This function returns the legacy path to support migration.
+#[cfg(target_os = "macos")]
+fn legacy_config_path() -> Option<PathBuf> {
+    directories::UserDirs::new().map(|u| u.home_dir().join(".config/berry/config.jsonc"))
+}
+
+#[cfg(not(target_os = "macos"))]
+fn legacy_config_path() -> Option<PathBuf> {
+    None
+}
+
 /// Load configuration from file and environment.
 ///
 /// Configuration is loaded in this order:
 /// 1. Default values
 /// 2. Config file (if exists)
 /// 3. Environment variable overrides
+///
+/// On macOS, if the native config path doesn't exist but a legacy XDG path does,
+/// the legacy path is used and a warning is printed to stderr.
 pub fn load_config() -> ConfigResult<Config> {
     let mut config = Config::default();
 
-    // Try to load from config file
-    if let Some(path) = config_path()
-        && path.exists()
-    {
-        let content = fs::read_to_string(&path)?;
-        let json = strip_jsonc_comments(&content);
-        config = serde_json::from_str(&json).map_err(|e| ConfigError::Parse(e.to_string()))?;
+    if let Some(path) = config_path() {
+        let load_path = if path.exists() {
+            Some(path)
+        } else {
+            // Check legacy XDG path on macOS
+            legacy_config_path().filter(|p| p.exists()).map(|legacy| {
+                eprintln!(
+                    "Warning: Config found at legacy path {}\n\
+                     Please move to: {}",
+                    legacy.display(),
+                    config_path().unwrap().display()
+                );
+                legacy
+            })
+        };
+
+        if let Some(p) = load_path {
+            let content = fs::read_to_string(&p)?;
+            let json = strip_jsonc_comments(&content);
+            config = serde_json::from_str(&json).map_err(|e| ConfigError::Parse(e.to_string()))?;
+        }
     }
 
     // Apply environment variable overrides
@@ -198,7 +236,7 @@ pub fn write_default_config() -> ConfigResult<PathBuf> {
 
     let content = r#"{
   // Berry Configuration
-  // See https://github.com/berry-rs/berry for documentation
+  // See https://github.com/geoffjay/berry-rs for documentation
 
   "server": {
     // URL of the Berry server

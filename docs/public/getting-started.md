@@ -18,7 +18,7 @@ For building from source:
 The easiest way to install Berry is via the install script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/berry-rs/berry/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/geoffjay/berry-rs/main/scripts/install.sh | bash
 ```
 
 This downloads pre-built binaries for your platform to `~/.local/bin`.
@@ -32,7 +32,7 @@ For development or contributing, install from source:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone and build
-git clone https://github.com/berry-rs/berry.git
+git clone https://github.com/geoffjay/berry-rs.git
 cd berry
 cargo build --release
 

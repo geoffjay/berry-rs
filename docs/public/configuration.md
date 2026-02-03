@@ -4,23 +4,30 @@ Berry can be configured through a configuration file and environment variables.
 
 ## Configuration File
 
-The configuration file is located at `~/.config/berry/config.jsonc`. This file uses JSONC format, which allows comments
-and trailing commas.
+The configuration file uses JSONC format, which allows comments and trailing commas.
 
 ### Configuration File Location
 
-```
-~/.config/berry/config.jsonc
-```
+The configuration file location is platform-specific:
+
+| Platform | Configuration Path |
+|----------|-------------------|
+| Linux    | `~/.config/berry/config.jsonc` |
+| macOS    | `~/Library/Application Support/berry/config.jsonc` |
+| Windows  | `%APPDATA%\berry\config.jsonc` |
 
 If the file doesn't exist, Berry uses default values. Create it with `berry init`.
+
+> **Note for macOS users**: If you previously used Berry with a config file at `~/.config/berry/config.jsonc`,
+> Berry will detect and use that file while displaying a migration warning. Move your config to the new location
+> to silence the warning.
 
 ### Full Configuration Example
 
 ```jsonc
 {
   // Berry Configuration
-  // See https://github.com/berry-rs/berry for documentation
+  // See https://github.com/geoffjay/berry-rs for documentation
 
   // Server connection settings
   "server": {
@@ -202,7 +209,7 @@ BERRY_LOG=debug berry serve --foreground
 
 1. Command-line flags (highest priority)
 2. Environment variables
-3. Configuration file (`~/.config/berry/config.jsonc`)
+3. Configuration file (platform-specific path)
 4. Default values (lowest priority)
 
 ## Validating Configuration

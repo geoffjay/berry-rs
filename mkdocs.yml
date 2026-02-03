@@ -3,7 +3,7 @@ site_description: A semantic memory system for AI assistants
 site_url: https://geoffjay.github.io/berry-rs
 site_dir: docs/site
 
-repo_name: berry-rs/berry
+repo_name: geoffjay/berry-rs
 repo_url: https://github.com/geoffjay/berry-rs
 
 theme:
@@ -90,4 +90,4 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/berry-rs/berry
+      link: https://github.com/geoffjay/berry-rs

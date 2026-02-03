@@ -2,7 +2,7 @@
 # Berry installation script
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/berry-rs/berry/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/geoffjay/berry-rs/main/scripts/install.sh | bash
 #
 # Environment variables:
 #   BERRY_INSTALL_DIR - Installation directory (default: ~/.local/bin)
@@ -52,7 +52,7 @@ detect_platform() {
 
 # Get the latest version from GitHub
 get_latest_version() {
-    curl -fsSL "https://api.github.com/repos/berry-rs/berry/releases/latest" | \
+    curl -fsSL "https://api.github.com/repos/geoffjay/berry-rs/releases/latest" | \
         grep '"tag_name":' | \
         sed -E 's/.*"([^"]+)".*/\1/'
 }
@@ -63,7 +63,7 @@ install_berry() {
     local version="$2"
     local install_dir="$3"
 
-    local base_url="https://github.com/berry-rs/berry/releases/download"
+    local base_url="https://github.com/geoffjay/berry-rs/releases/download"
     local asset_name="berry-${platform}"
     local download_url
 

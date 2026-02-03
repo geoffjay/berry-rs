@@ -45,7 +45,7 @@ fn write_default_config() -> Result<std::path::PathBuf> {
 
     let content = r#"{
   // Berry Configuration
-  // See https://github.com/berry-rs/berry for documentation
+  // See https://github.com/geoffjay/berry-rs for documentation
 
   "server": {
     // URL of the Berry server

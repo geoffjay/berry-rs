@@ -136,7 +136,7 @@ After a release, users can install Berry via:
 ### Installation Script (recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/berry-rs/berry/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/geoffjay/berry-rs/main/scripts/install.sh | bash
 ```
 
 This downloads binaries from GitHub Releases.
@@ -144,9 +144,9 @@ This downloads binaries from GitHub Releases.
 ### From Source
 
 ```bash
-cargo install --git https://github.com/berry-rs/berry berry-cli
-cargo install --git https://github.com/berry-rs/berry berry-server
-cargo install --git https://github.com/berry-rs/berry berry-mcp
+cargo install --git https://github.com/geoffjay/berry-rs berry-cli
+cargo install --git https://github.com/geoffjay/berry-rs berry-server
+cargo install --git https://github.com/geoffjay/berry-rs berry-mcp
 ```
 
 ## Manual Release

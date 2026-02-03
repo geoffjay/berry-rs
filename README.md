@@ -16,7 +16,7 @@ This is the Rust implementation of Berry, providing improved performance and nat
 Install Berry using the installation script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/berry-rs/berry/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/geoffjay/berry-rs/main/scripts/install.sh | bash
 ```
 
 ### From Source
@@ -28,7 +28,7 @@ For development or if you prefer building from source:
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone and build berry
-git clone https://github.com/berry-rs/berry.git
+git clone https://github.com/geoffjay/berry-rs.git
 cd berry
 cargo build --release
 
@@ -73,8 +73,16 @@ be better to use a launch system.
 
 ### Initialize Configuration
 
-The CLI and MCP server both use a common configuration file for settings. The configuration file is located at
-`~/.config/berry/config.jsonc` and is created using the command `berry init`.
+The CLI and MCP server both use a common configuration file for settings. The configuration file location is
+platform-specific:
+
+| Platform | Configuration Path |
+|----------|-------------------|
+| Linux    | `~/.config/berry/config.jsonc` |
+| macOS    | `~/Library/Application Support/berry/config.jsonc` |
+| Windows  | `%APPDATA%\berry\config.jsonc` |
+
+Create the configuration file using `berry init`.
 
 ### Launchd (macOS)
 
@@ -168,8 +176,8 @@ tail -f ~/.local/state/berry/server.log
 
 ### Configuration
 
-The CLI uses a configuration file located at `~/.config/berry/config.jsonc`, create it with `berry init` if you haven't
-already.
+The CLI uses a platform-specific configuration file (see [Initialize Configuration](#initialize-configuration) above).
+Create it with `berry init` if you haven't already.
 
 ### Sample Commands
 
@@ -212,8 +220,8 @@ berry search "meeting" \
 
 ### Configuration
 
-The MCP server uses a configuration file located at `~/.config/berry/config.jsonc`, create it with `berry init` if you
-haven't already.
+The MCP server uses a platform-specific configuration file (see [Initialize Configuration](#initialize-configuration)
+above). Create it with `berry init` if you haven't already.
 
 ### Claude Code
 

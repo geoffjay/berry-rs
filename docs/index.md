@@ -55,7 +55,7 @@ AI assistants are powerful but stateless. Each conversation starts fresh, losing
 ### Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/berry-rs/berry/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/geoffjay/berry-rs/main/scripts/install.sh | bash
 ```
 
 ### Configure
@@ -216,6 +216,6 @@ Berry is open source software. See the repository for license details.
 
 ## Links
 
-- [GitHub Repository](https://github.com/berry-rs/berry)
+- [GitHub Repository](https://github.com/geoffjay/berry-rs)
 - [ChromaDB](https://trychroma.com)
 - [Ollama](https://ollama.ai)

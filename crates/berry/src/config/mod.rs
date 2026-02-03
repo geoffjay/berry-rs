@@ -2,8 +2,14 @@
 //!
 //! Configuration is loaded from:
 //! 1. Default values
-//! 2. Config file (~/.config/berry/config.jsonc)
+//! 2. Config file (platform-specific path, see below)
 //! 3. Environment variables (override file values)
+//!
+//! ## Configuration File Locations
+//!
+//! - **Linux**: `~/.config/berry/config.jsonc`
+//! - **macOS**: `~/Library/Application Support/berry/config.jsonc`
+//! - **Windows**: `%APPDATA%\berry\config.jsonc`
 
 mod loader;
 mod types;

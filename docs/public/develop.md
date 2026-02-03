@@ -11,7 +11,7 @@ This guide covers setting up a local development environment for the Berry proje
 
 ```bash
 # Clone the repository
-git clone https://github.com/berry-rs/berry.git
+git clone https://github.com/geoffjay/berry-rs.git
 cd berry
 
 # Build all packages
