@@ -302,7 +302,7 @@ mod tests {
 
     #[test]
     fn test_noop_embedding_default() {
-        let service = NoOpEmbedding::default();
+        let service: NoOpEmbedding = Default::default();
         assert_eq!(service.dimension(), 0);
     }
 

@@ -141,14 +141,13 @@ pub fn load_config() -> ConfigResult<Config> {
             Some(path)
         } else {
             // Check legacy XDG path on macOS
-            legacy_config_path().filter(|p| p.exists()).map(|legacy| {
+            legacy_config_path().filter(|p| p.exists()).inspect(|legacy| {
                 eprintln!(
                     "Warning: Config found at legacy path {}\n\
                      Please move to: {}",
                     legacy.display(),
                     config_path().unwrap().display()
                 );
-                legacy
             })
         };
 
