@@ -366,21 +366,23 @@ Berry supports fully local, offline embedding generation using the `embed_anythi
 
 #### Enabling Local Embeddings
 
-When building from source, enable the feature:
+When building from source, enable the feature on the `berry` crate:
 
 ```bash
 # CPU-only (works on all platforms)
-cargo build --release -p berry-cli -p berry-server --features local-embeddings
+cargo build --release --features berry/local-embeddings
 
 # With Metal GPU acceleration (macOS only)
-cargo build --release -p berry-cli -p berry-server --features local-embeddings-metal
+cargo build --release --features berry/local-embeddings-metal
 
 # With CUDA GPU acceleration (requires NVIDIA GPU + CUDA toolkit)
-cargo build --release -p berry-cli -p berry-server --features local-embeddings-cuda
+cargo build --release --features berry/local-embeddings-cuda
 
 # With Accelerate framework (macOS only)
-cargo build --release -p berry-cli -p berry-server --features local-embeddings-accelerate
+cargo build --release --features berry/local-embeddings-accelerate
 ```
+
+This builds the entire workspace with local embedding support enabled.
 
 #### Configuration
 
