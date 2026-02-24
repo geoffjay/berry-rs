@@ -11,3 +11,4 @@
 .otter/
 target/
 docs/site/
+.todos/
