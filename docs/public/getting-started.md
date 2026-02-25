@@ -7,8 +7,10 @@ This guide walks you through installing and using Berry for the first time.
 Before installing Berry, ensure you have the following:
 
 - [Docker](https://www.docker.com/) - For running ChromaDB
+- [Ollama](https://ollama.com) - For running the ollama server
 
 For building from source:
+
 - [Rust](https://www.rust-lang.org/) 1.75+ (with cargo)
 
 ## Installation
@@ -88,11 +90,10 @@ EOF
 
 ## Starting the Services
 
-Berry requires ChromaDB for vector storage. Start it with Docker:
+Depending on the storage backend, you may need to start the necessary services first.
 
-```bash
-docker run -d -p 8000:8000 chromadb/chroma
-```
+- [ChromaDB](./services/chromadb.md)
+- [Ollama](./services/ollama.md)
 
 Then start the Berry server:
 

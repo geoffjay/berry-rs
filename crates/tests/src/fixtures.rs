@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use tempfile::TempDir;
 use tokio::net::TcpListener;
 
-use berry::config::{ChromaConfig, Config, EmbeddingConfig};
+use berry::config::{ChromaConfig, Config, EmbeddingConfig, LanceConfig, StoreBackend};
 use berry::error::StoreResult;
 use berry::store::{ChromaStore, EmbeddingService, VectorStore};
 
@@ -156,6 +156,7 @@ impl TestEnvironment {
 /// Create a test configuration pointing to the given ChromaDB URL.
 pub fn create_test_config(chroma_url: &str, _config_dir: PathBuf) -> Config {
     Config {
+        store: StoreBackend::Chroma,
         server: berry::config::ServerConfig {
             url: "http://localhost:4114".to_string(),
             timeout: 5000,
@@ -169,6 +170,7 @@ pub fn create_test_config(chroma_url: &str, _config_dir: PathBuf) -> Config {
             tenant: None,
             database: None,
         },
+        lance: LanceConfig::default(),
         embedding: EmbeddingConfig {
             provider: "none".to_string(),
             api_key: None,

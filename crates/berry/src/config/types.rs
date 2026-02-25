@@ -4,16 +4,31 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{MemoryType, VisibilityLevel};
 
+/// Which vector store backend to use.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum StoreBackend {
+    /// ChromaDB (requires running ChromaDB server)
+    #[default]
+    Chroma,
+    /// LanceDB (embedded, no server required)
+    Lance,
+}
+
 /// Root configuration structure.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
+    /// Which vector store backend to use
+    pub store: StoreBackend,
     /// Server connection configuration
     pub server: ServerConfig,
     /// Default values for memory operations
     pub defaults: DefaultsConfig,
     /// ChromaDB configuration
     pub chroma: ChromaConfig,
+    /// LanceDB configuration
+    pub lance: LanceConfig,
     /// Embedding service configuration
     pub embedding: EmbeddingConfig,
 }
@@ -93,6 +108,29 @@ impl Default for ChromaConfig {
     }
 }
 
+/// LanceDB configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct LanceConfig {
+    /// Path to the LanceDB database directory
+    pub path: String,
+    /// Table name for memories
+    pub table: String,
+}
+
+impl Default for LanceConfig {
+    fn default() -> Self {
+        let path = directories::ProjectDirs::from("", "", "berry")
+            .map(|dirs| dirs.data_dir().join("lancedb").to_string_lossy().to_string())
+            .unwrap_or_else(|| "lancedb".to_string());
+
+        Self {
+            path,
+            table: "berry_memories".to_string(),
+        }
+    }
+}
+
 /// Embedding service configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -127,12 +165,14 @@ mod tests {
     #[test]
     fn test_config_defaults() {
         let config = Config::default();
+        assert_eq!(config.store, StoreBackend::Chroma);
         assert_eq!(config.server.url, "http://localhost:4114");
         assert_eq!(config.server.timeout, 5000);
         assert_eq!(config.defaults.memory_type, MemoryType::Information);
         assert_eq!(config.defaults.created_by, "user");
         assert_eq!(config.chroma.url, "http://localhost:8000");
         assert_eq!(config.chroma.collection, "berry_memories");
+        assert_eq!(config.lance.table, "berry_memories");
     }
 
     #[test]
@@ -154,5 +194,36 @@ mod tests {
         assert_eq!(config.server.url, "http://custom:8080");
         assert_eq!(config.server.timeout, 5000); // default
         assert_eq!(config.defaults.created_by, "user"); // default
+    }
+
+    #[test]
+    fn test_store_backend_deserialization() {
+        let json = r#"{ "store": "lance" }"#;
+        let config: Config = serde_json::from_str(json).unwrap();
+        assert_eq!(config.store, StoreBackend::Lance);
+
+        let json = r#"{ "store": "chroma" }"#;
+        let config: Config = serde_json::from_str(json).unwrap();
+        assert_eq!(config.store, StoreBackend::Chroma);
+    }
+
+    #[test]
+    fn test_lance_config_defaults() {
+        let config = LanceConfig::default();
+        assert_eq!(config.table, "berry_memories");
+        assert!(!config.path.is_empty());
+    }
+
+    #[test]
+    fn test_lance_config_deserialization() {
+        let json = r#"{
+            "lance": {
+                "path": "/tmp/test-lance",
+                "table": "custom_table"
+            }
+        }"#;
+        let config: Config = serde_json::from_str(json).unwrap();
+        assert_eq!(config.lance.path, "/tmp/test-lance");
+        assert_eq!(config.lance.table, "custom_table");
     }
 }

@@ -154,6 +154,10 @@ enum Commands {
         /// Target collection name (defaults to <current>_migrated)
         #[arg(long = "collection")]
         new_collection: Option<String>,
+
+        /// Migrate from ChromaDB to LanceDB
+        #[arg(long)]
+        to_lance: bool,
     },
 }
 
@@ -280,10 +284,12 @@ async fn main() -> Result<()> {
         Some(Commands::Migrate {
             dry_run,
             new_collection,
+            to_lance,
         }) => {
             let args = commands::migrate::MigrateArgs {
                 dry_run,
                 new_collection,
+                to_lance,
             };
             commands::migrate(args).await
         }

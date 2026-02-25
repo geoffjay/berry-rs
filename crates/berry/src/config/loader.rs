@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use directories::ProjectDirs;
 
-use super::types::Config;
+use super::types::{Config, StoreBackend};
 use crate::error::{ConfigError, ConfigResult};
 use crate::types::MemoryType;
 
@@ -206,6 +206,23 @@ fn apply_env_overrides(config: &mut Config) {
     }
     if let Ok(database) = env::var("CHROMA_DATABASE") {
         config.chroma.database = Some(database);
+    }
+
+    // Store backend
+    if let Ok(store) = env::var("BERRY_STORE") {
+        match store.to_lowercase().as_str() {
+            "lance" | "lancedb" => config.store = StoreBackend::Lance,
+            "chroma" | "chromadb" => config.store = StoreBackend::Chroma,
+            _ => {}
+        }
+    }
+
+    // Lance config
+    if let Ok(path) = env::var("LANCE_DB_PATH") {
+        config.lance.path = path;
+    }
+    if let Ok(table) = env::var("LANCE_TABLE") {
+        config.lance.table = table;
     }
 
     // Embedding config

@@ -17,7 +17,7 @@ use tower_http::{
 use std::sync::Arc;
 
 use berry::config::load_config;
-use berry::store::{ChromaStore, VectorStore, create_embedding_service};
+use berry::store::create_store;
 
 pub mod routes;
 pub mod state;
@@ -53,22 +53,23 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
     // Load configuration
     let app_config = load_config().unwrap_or_default();
 
-    // Create embedding service
-    let embedding_service = match create_embedding_service(&app_config.embedding) {
-        Ok(service) => Arc::from(service),
-        Err(e) => {
-            tracing::warn!(
-                "Failed to create embedding service: {}. Semantic search will not work.",
-                e
-            );
-            Arc::from(berry::store::NoOpEmbedding::new()) as Arc<dyn berry::store::EmbeddingService>
-        }
-    };
+    tracing::info!("Using store backend: {:?}", app_config.store);
 
-    // Create store
-    let store = ChromaStore::new(&app_config.chroma, embedding_service);
+    // Create store via factory
+    let store = create_store(&app_config).await.unwrap_or_else(|e| {
+        tracing::warn!(
+            "Failed to create store: {}. Falling back to ChromaDB.",
+            e
+        );
+        let embedding_service = Arc::from(berry::store::NoOpEmbedding::new())
+            as Arc<dyn berry::store::EmbeddingService>;
+        Arc::new(berry::store::ChromaStore::new(
+            &app_config.chroma,
+            embedding_service,
+        ))
+    });
 
-    // Initialize store (create collection if needed)
+    // Initialize store (create collection/table if needed)
     tracing::info!("Initializing vector store...");
     if let Err(e) = store.initialize().await {
         tracing::warn!(
@@ -78,7 +79,7 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
     }
 
     // Create application state
-    let state = AppState::new(store);
+    let state = AppState::from_arc(store);
 
     // Build router
     let app = Router::new()

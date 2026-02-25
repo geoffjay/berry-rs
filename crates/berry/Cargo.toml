@@ -11,6 +11,7 @@ local-embeddings = ["dep:embed_anything"]
 local-embeddings-metal = ["local-embeddings", "embed_anything/metal"]
 local-embeddings-cuda = ["local-embeddings", "embed_anything/cuda"]
 local-embeddings-accelerate = ["local-embeddings", "embed_anything/accelerate"]
+lancedb-store = ["dep:lancedb", "dep:arrow-array", "dep:arrow-schema", "dep:futures"]
 
 [dependencies]
 # Serialization
@@ -48,6 +49,12 @@ async-trait = "0.1"
 
 # Local embeddings (optional)
 embed_anything = { workspace = true, optional = true }
+
+# LanceDB vector store (optional)
+lancedb = { workspace = true, optional = true, default-features = false }
+arrow-array = { workspace = true, optional = true }
+arrow-schema = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio-test = "0.4"

@@ -1,6 +1,7 @@
 //! Migrate command implementation.
 //!
-//! Re-embeds all memories with the current embedding model.
+//! Re-embeds all memories with the current embedding model,
+//! optionally migrating between store backends.
 
 use std::sync::Arc;
 
@@ -17,6 +18,8 @@ pub struct MigrateArgs {
     pub dry_run: bool,
     /// New collection name (if different from current).
     pub new_collection: Option<String>,
+    /// Migrate from ChromaDB to LanceDB.
+    pub to_lance: bool,
 }
 
 /// Run the migrate command.
@@ -31,6 +34,119 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
     println!("Embedding dimensions: {}", embedding_service.dimension());
     println!();
 
+    if args.to_lance {
+        return run_to_lance(args, &config, embedding_service).await;
+    }
+
+    // Original Chroma-to-Chroma migration
+    run_chroma_migration(args, &config, embedding_service).await
+}
+
+/// Migrate from ChromaDB to LanceDB.
+#[cfg(feature = "lancedb-store")]
+async fn run_to_lance(
+    args: MigrateArgs,
+    config: &berry::config::Config,
+    embedding_service: Arc<dyn EmbeddingService>,
+) -> Result<()> {
+    use berry::store::LanceStore;
+
+    // Source: ChromaDB
+    let source_store = ChromaStore::new(&config.chroma, embedding_service.clone());
+    println!(
+        "Source: ChromaDB collection '{}'",
+        config.chroma.collection
+    );
+    source_store.initialize().await?;
+
+    let memories = source_store.list_all().await?;
+    println!("Found {} memories to migrate", memories.len());
+    println!();
+
+    if memories.is_empty() {
+        println!("No memories to migrate.");
+        return Ok(());
+    }
+
+    if args.dry_run {
+        println!("Dry run - would migrate the following memories to LanceDB:");
+        for memory in &memories {
+            println!(
+                "  - {} ({}): {}...",
+                memory.id,
+                memory.memory_type,
+                &memory.content[..memory.content.len().min(50)]
+            );
+        }
+        println!();
+        println!("To perform the migration, run without --dry-run");
+        return Ok(());
+    }
+
+    // Destination: LanceDB
+    println!("Target: LanceDB at '{}'", config.lance.path);
+    let dest_store = LanceStore::new(&config.lance, embedding_service).await?;
+    dest_store.initialize().await?;
+
+    // Migrate each memory
+    println!("Migrating memories...");
+    let mut success_count = 0;
+    let mut error_count = 0;
+
+    for memory in memories {
+        print!("  Migrating {}... ", memory.id);
+
+        let request = CreateMemoryRequest {
+            content: memory.content,
+            memory_type: memory.memory_type,
+            tags: memory.tags,
+            created_by: memory.created_by,
+            references: vec![],
+            visibility: memory.visibility,
+            shared_with: memory.shared_with,
+        };
+
+        match dest_store.create(request).await {
+            Ok(new_memory) => {
+                println!("OK (new id: {})", new_memory.id);
+                success_count += 1;
+            }
+            Err(e) => {
+                println!("ERROR: {}", e);
+                error_count += 1;
+            }
+        }
+    }
+
+    println!();
+    println!("Migration complete:");
+    println!("  Successful: {}", success_count);
+    println!("  Errors: {}", error_count);
+    println!();
+    println!("To use LanceDB, set BERRY_STORE=lance or update your config file:");
+    println!("  \"store\": \"lance\"");
+
+    Ok(())
+}
+
+/// Fallback when lancedb-store feature is not enabled.
+#[cfg(not(feature = "lancedb-store"))]
+async fn run_to_lance(
+    _args: MigrateArgs,
+    _config: &berry::config::Config,
+    _embedding_service: Arc<dyn EmbeddingService>,
+) -> Result<()> {
+    anyhow::bail!(
+        "LanceDB support not available. Rebuild with the 'lancedb-store' feature enabled."
+    );
+}
+
+/// Original Chroma-to-Chroma migration path.
+async fn run_chroma_migration(
+    args: MigrateArgs,
+    config: &berry::config::Config,
+    embedding_service: Arc<dyn EmbeddingService>,
+) -> Result<()> {
     // Create store with current config to read existing data
     let source_store = ChromaStore::new(&config.chroma, embedding_service.clone());
 

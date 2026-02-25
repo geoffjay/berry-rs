@@ -18,4 +18,9 @@ impl AppState {
             store: Arc::new(store),
         }
     }
+
+    /// Create application state from a pre-built store Arc.
+    pub fn from_arc(store: Arc<dyn VectorStore>) -> Self {
+        Self { store }
+    }
 }
