@@ -370,15 +370,15 @@ impl VectorStore for LanceStore {
                 request.tags.iter().any(|t| m.tags.contains(t))
             })
             .filter(|m| {
-                if let Some(ref from) = request.from {
-                    if m.created_at < *from {
-                        return false;
-                    }
+                if let Some(ref from) = request.from
+                    && m.created_at < *from
+                {
+                    return false;
                 }
-                if let Some(ref to) = request.to {
-                    if m.created_at > *to {
-                        return false;
-                    }
+                if let Some(ref to) = request.to
+                    && m.created_at > *to
+                {
+                    return false;
                 }
                 true
             })

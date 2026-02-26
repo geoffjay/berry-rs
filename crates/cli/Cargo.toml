@@ -52,10 +52,6 @@ inquire = "0.7"
 # Table formatting
 tabled = "0.18"
 
-[features]
-default = []
-lancedb-store = ["berry/lancedb-store", "berry-server/lancedb-store"]
-
 [dev-dependencies]
 mockito = "1.2"
 tokio-test = "0.4"

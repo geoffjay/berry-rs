@@ -256,6 +256,9 @@ pub fn write_default_config() -> ConfigResult<PathBuf> {
   // Berry Configuration
   // See https://github.com/geoffjay/berry-rs for documentation
 
+  // Vector store backend: "lance" (default, embedded) or "chroma" (requires server)
+  "store": "lance",
+
   "server": {
     // URL of the Berry server
     "url": "http://localhost:4114",
@@ -272,16 +275,19 @@ pub fn write_default_config() -> ConfigResult<PathBuf> {
     "visibility": "public"
   },
 
-  "chroma": {
-    // ChromaDB server URL
-    "url": "http://localhost:8000",
-    // Collection name for storing memories
-    "collection": "berry_memories"
-    // Optional: authentication provider
-    // "provider": "token",
-    // Optional: API key for authentication
-    // "apiKey": "your-api-key"
+  "lance": {
+    // Path to the LanceDB database directory (platform-specific default if omitted)
+    // "path": "/path/to/lancedb",
+    // Table name for storing memories
+    "table": "berry_memories"
   }
+
+  // Uncomment to use ChromaDB instead:
+  // "store": "chroma",
+  // "chroma": {
+  //   "url": "http://localhost:8000",
+  //   "collection": "berry_memories"
+  // }
 }
 "#;
 

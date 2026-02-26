@@ -29,8 +29,8 @@ If the file doesn't exist, Berry uses default values. Create it with `berry init
   // Berry Configuration
   // See https://github.com/geoffjay/berry-rs for documentation
 
-  // Vector store backend: "chroma" or "lance"
-  "store": "chroma",
+  // Vector store backend: "lance" (default, embedded) or "chroma" (requires server)
+  "store": "lance",
 
   // Server connection settings
   "server": {
@@ -93,10 +93,10 @@ If the file doesn't exist, Berry uses default values. Create it with `berry init
 The vector store backend to use for storing memories.
 
 - **Type:** `string`
-- **Default:** `"chroma"`
+- **Default:** `"lance"`
 - **Options:**
+  - `"lance"` - LanceDB (embedded, no server required) — recommended
   - `"chroma"` - ChromaDB (requires a running ChromaDB server)
-  - `"lance"` - LanceDB (embedded, no server required)
 
 #### `server.url`
 
@@ -214,7 +214,7 @@ Environment variables override configuration file values.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `BERRY_STORE` | Vector store backend (`chroma`, `chromadb`, `lance`, `lancedb`) | `chroma` |
+| `BERRY_STORE` | Vector store backend (`lance`, `lancedb`, `chroma`, `chromadb`) | `lance` |
 | `BERRY_SERVER_URL` | Berry server URL | `http://localhost:4114` |
 | `BERRY_TIMEOUT` | Request timeout (ms) | `5000` |
 | `BERRY_CREATED_BY` | Default creator | `user` |
@@ -302,14 +302,11 @@ berry-server --port 8080 --host 0.0.0.0
 
 ## LanceDB Configuration
 
-LanceDB is an embedded vector database — no server is required. Data is stored directly on the local filesystem, making it ideal for single-node deployments, development, and environments where running a separate database server is undesirable.
-
-> **Note**: LanceDB support requires Berry to be compiled with the `lancedb-store` feature flag. Pre-built releases may not include this feature.
+LanceDB is an embedded vector database — no server is required. Data is stored directly on the local filesystem, making it ideal for single-node deployments, development, and environments where running a separate database server is undesirable. LanceDB is the default store backend.
 
 ### Using Environment Variables
 
 ```bash
-export BERRY_STORE=lance
 export LANCE_DB_PATH=/path/to/lancedb
 export LANCE_TABLE=berry_memories
 
@@ -326,12 +323,6 @@ berry serve
     "table": "berry_memories"
   }
 }
-```
-
-### Building with LanceDB Support
-
-```bash
-cargo build --release --features berry/lancedb-store
 ```
 
 ## ChromaDB Cloud Configuration

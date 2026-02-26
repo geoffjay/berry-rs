@@ -8,7 +8,7 @@ use std::sync::Arc;
 use anyhow::Result;
 
 use berry::config::load_config;
-use berry::store::{ChromaStore, EmbeddingService, VectorStore, create_embedding_service};
+use berry::store::{ChromaStore, EmbeddingService, LanceStore, VectorStore, create_embedding_service};
 use berry::types::CreateMemoryRequest;
 
 /// Arguments for the migrate command.
@@ -43,14 +43,11 @@ pub async fn run(args: MigrateArgs) -> Result<()> {
 }
 
 /// Migrate from ChromaDB to LanceDB.
-#[cfg(feature = "lancedb-store")]
 async fn run_to_lance(
     args: MigrateArgs,
     config: &berry::config::Config,
     embedding_service: Arc<dyn EmbeddingService>,
 ) -> Result<()> {
-    use berry::store::LanceStore;
-
     // Source: ChromaDB
     let source_store = ChromaStore::new(&config.chroma, embedding_service.clone());
     println!(
@@ -127,18 +124,6 @@ async fn run_to_lance(
     println!("  \"store\": \"lance\"");
 
     Ok(())
-}
-
-/// Fallback when lancedb-store feature is not enabled.
-#[cfg(not(feature = "lancedb-store"))]
-async fn run_to_lance(
-    _args: MigrateArgs,
-    _config: &berry::config::Config,
-    _embedding_service: Arc<dyn EmbeddingService>,
-) -> Result<()> {
-    anyhow::bail!(
-        "LanceDB support not available. Rebuild with the 'lancedb-store' feature enabled."
-    );
 }
 
 /// Original Chroma-to-Chroma migration path.

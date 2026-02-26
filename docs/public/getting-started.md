@@ -6,8 +6,7 @@ This guide walks you through installing and using Berry for the first time.
 
 Before installing Berry, ensure you have the following:
 
-- [Docker](https://www.docker.com/) - For running ChromaDB
-- [Ollama](https://ollama.com) - For running the ollama server
+- [Ollama](https://ollama.com) - For running local embeddings (or an OpenAI API key)
 
 For building from source:
 
@@ -79,6 +78,7 @@ This creates the file in the platform dependent location with default settings. 
 mkdir -p ~/.config/berry
 cat > ~/.config/berry/config.jsonc << 'EOF'
 {
+  "store": "lance",
   "server": {
     "url": "http://localhost:4114",
     "timeout": 5000
@@ -88,9 +88,8 @@ cat > ~/.config/berry/config.jsonc << 'EOF'
     "createdBy": "user",
     "visibility": "public"
   },
-  "chroma": {
-    "url": "http://localhost:8000",
-    "collection": "berry_memories"
+  "lance": {
+    "table": "berry_memories"
   }
 }
 EOF
@@ -98,12 +97,13 @@ EOF
 
 ## Starting the Services
 
-Depending on the storage backend, you may need to start the necessary services first.
+Berry uses LanceDB by default, which is an embedded database — no additional services are needed. If you use Ollama for embeddings, ensure it is running:
 
-- [ChromaDB](./services/chromadb.md)
 - [Ollama](./services/ollama.md)
 
-Then start the Berry server:
+If you opt to use ChromaDB instead, see [ChromaDB setup](./services/chromadb.md).
+
+Start the Berry server:
 
 ```bash
 berry serve
@@ -206,16 +206,12 @@ Add this line to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to make it p
 
 ### Server failed to start
 
-Ensure ChromaDB is running:
+If using the default LanceDB store, ensure the data directory is writable. Check the server logs for details.
+
+If using ChromaDB, ensure it is running:
 
 ```bash
 docker ps | grep chroma
-```
-
-If not running, start it:
-
-```bash
-docker run -d -p 8000:8000 chromadb/chroma
 ```
 
 ### Connection refused
@@ -228,7 +224,7 @@ cat ~/.config/berry/config.jsonc
 
 The default configuration expects the server at `http://localhost:4114`.
 
-### ChromaDB connection issues
+### ChromaDB connection issues (if using ChromaDB)
 
 Verify ChromaDB is accessible:
 

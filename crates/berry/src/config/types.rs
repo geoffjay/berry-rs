@@ -9,9 +9,9 @@ use crate::types::{MemoryType, VisibilityLevel};
 #[serde(rename_all = "lowercase")]
 pub enum StoreBackend {
     /// ChromaDB (requires running ChromaDB server)
-    #[default]
     Chroma,
     /// LanceDB (embedded, no server required)
+    #[default]
     Lance,
 }
 
@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn test_config_defaults() {
         let config = Config::default();
-        assert_eq!(config.store, StoreBackend::Chroma);
+        assert_eq!(config.store, StoreBackend::Lance);
         assert_eq!(config.server.url, "http://localhost:4114");
         assert_eq!(config.server.timeout, 5000);
         assert_eq!(config.defaults.memory_type, MemoryType::Information);

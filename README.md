@@ -65,28 +65,22 @@ berry --version
 
 ## Setup
 
-The recommended way to use Berry is to create a new ChromaDB instance in the cloud. To do this visit the
-[ChromaDB website](https://trychroma.com) and create a user and a new instance, the free version has a usage limit but
-is sufficient to get started. Once you have created an instance, you need to generate an API key, save it as well as the
-tenant ID and database name. The server will use the following environment variables to connect to the database:
+Berry uses **LanceDB** by default — an embedded vector database that requires no setup. Data is stored locally on disk, so you can start using Berry immediately after installation.
 
-```
-CHROMA_PROVIDER=cloud
-CHROMA_API_KEY=<insert_chroma_api_key>
-CHROMA_TENANT=<insert_chroma_tenant_id>
-CHROMA_DATABASE=<insert_chroma_database_name>
-```
+If you prefer to use ChromaDB instead, set `BERRY_STORE=chroma` and configure the ChromaDB connection:
 
-If you want to use a local instance of ChromaDB, you can use the following environment variables:
+```bash
+# Local ChromaDB
+export BERRY_STORE=chroma
+export CHROMA_URL=http://localhost:8000
 
+# Or ChromaDB Cloud
+export BERRY_STORE=chroma
+export CHROMA_PROVIDER=cloud
+export CHROMA_API_KEY=<insert_chroma_api_key>
+export CHROMA_TENANT=<insert_chroma_tenant_id>
+export CHROMA_DATABASE=<insert_chroma_database_name>
 ```
-CHROMA_PROVIDER=local
-CHROMA_URL=http://localhost:8000
-```
-
-Depending on how you want to run the server these should be set. If you only want to run this for a single project that
-could be managed using any number of task runners, if you want it for many projects and conversational sessions it would
-be better to use a launch system.
 
 ### Initialize Configuration
 
@@ -124,8 +118,12 @@ Create a file called `com.berry.server.plist` in `~/Library/LaunchAgents` with t
 
     <key>EnvironmentVariables</key>
     <dict>
-        <key>CHROMA_URL</key>
-        <string>http://localhost:8000</string>
+        <!-- LanceDB is the default store; no additional env vars needed -->
+        <!-- Uncomment below to use ChromaDB instead: -->
+        <!-- <key>BERRY_STORE</key> -->
+        <!-- <string>chroma</string> -->
+        <!-- <key>CHROMA_URL</key> -->
+        <!-- <string>http://localhost:8000</string> -->
     </dict>
 
     <key>RunAtLoad</key>

@@ -45,10 +45,6 @@ tower-http = { version = "0.6", features = ["cors", "trace"] }
 # JSON schema
 schemars = { workspace = true }
 
-[features]
-default = []
-lancedb-store = ["berry/lancedb-store"]
-
 [dev-dependencies]
 async-trait = "0.1"
 axum-test = "16"

@@ -26,7 +26,7 @@ Berry provides persistent, searchable memory storage that bridges the gap betwee
 
     ---
 
-    Use local or cloud ChromaDB, OpenAI or local Ollama embeddings.
+    Use embedded LanceDB or cloud ChromaDB, with OpenAI or local Ollama embeddings.
 
     [:octicons-arrow-right-24: Configuration](public/configuration.md)
 
@@ -64,14 +64,11 @@ curl -fsSL https://raw.githubusercontent.com/geoffjay/berry-rs/main/scripts/inst
 # Initialize configuration
 berry init
 
-# Set up ChromaDB (local with Docker)
-docker run -d -p 8000:8000 chromadb/chroma
+# That's it! Berry uses LanceDB by default (embedded, no setup needed).
 
-# Or use ChromaDB Cloud
-export CHROMA_URL=https://api.trychroma.com
-export CHROMA_TENANT=your-tenant-id
-export CHROMA_DATABASE=your-database
-export CHROMA_API_KEY=your-api-key
+# Optionally, to use ChromaDB instead:
+# docker run -d -p 8000:8000 chromadb/chroma
+# export BERRY_STORE=chroma
 ```
 
 ### Start the Server
@@ -112,8 +109,13 @@ berry remember "How do I reset a password?" --type question --tags "auth,faq"
               ┌─────────────┼─────────────┐
               │             │             │
       ┌───────▼───────┐ ┌───▼───┐ ┌───────▼───────┐
+      ┌───────▼───────┐    │             │
+      │   LanceDB     │    │             │
+      │  (Default)    │    │             │
+      └───────────────┘    │             │
+      ┌───────▼───────┐ ┌───▼───┐ ┌───────▼───────┐
       │   ChromaDB    │ │Ollama │ │    OpenAI     │
-      │ (Vector Store)│ │(Local)│ │  (Embeddings) │
+      │ (Alternative) │ │(Local)│ │  (Embeddings) │
       └───────────────┘ └───────┘ └───────────────┘
 ```
 
@@ -202,9 +204,9 @@ Contributing and development setup.
 
 ## Requirements
 
-- **ChromaDB**: Vector database for storage (local Docker or cloud)
 - **Embedding Provider**: OpenAI API or local Ollama
 - **Rust 1.75+**: Only required for building from source
+- **ChromaDB** (optional): Only if using ChromaDB instead of the default LanceDB
 
 ## Status
 

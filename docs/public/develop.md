@@ -5,7 +5,7 @@ This guide covers setting up a local development environment for the Berry proje
 ## Prerequisites
 
 - [Rust](https://www.rust-lang.org/) 1.75+ (install via rustup)
-- [Docker](https://www.docker.com/) for running ChromaDB
+- [Docker](https://www.docker.com/) (optional, only needed for ChromaDB or integration tests)
 
 ## Setup
 
@@ -23,12 +23,9 @@ cargo test --all
 
 ## Running the Services
 
-Berry requires two services to be running:
+Berry uses LanceDB by default (embedded, no setup needed). You only need to run the Berry server.
 
-1. **ChromaDB** - Vector database for storing memories
-2. **Berry Server** - HTTP API server
-
-### Start ChromaDB
+If you want to use ChromaDB instead, start it first:
 
 ```bash
 docker run -d -p 8000:8000 chromadb/chroma
@@ -57,6 +54,7 @@ Create `~/.config/berry/config.jsonc`:
 
 ```jsonc
 {
+  "store": "lance",
   "server": {
     "url": "http://localhost:4114",
     "timeout": 5000
@@ -65,9 +63,8 @@ Create `~/.config/berry/config.jsonc`:
     "type": "information",
     "createdBy": "user"
   },
-  "chroma": {
-    "url": "http://localhost:8000",
-    "collection": "berry_memories"
+  "lance": {
+    "table": "berry_memories"
   }
 }
 ```
@@ -222,7 +219,7 @@ Ensure you have Rust 1.75+ installed:
 rustup update stable
 ```
 
-### ChromaDB connection refused
+### ChromaDB connection refused (if using ChromaDB)
 
 Ensure ChromaDB is running:
 
@@ -238,4 +235,4 @@ docker run -d -p 8000:8000 chromadb/chroma
 
 ### Tests fail with network errors
 
-Some tests may require ChromaDB to be running. Integration tests that require external services should be marked appropriately.
+Some integration tests may require external services (ChromaDB, Ollama) to be running. Tests that require external services should be marked appropriately.
