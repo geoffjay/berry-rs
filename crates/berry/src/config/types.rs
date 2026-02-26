@@ -121,7 +121,12 @@ pub struct LanceConfig {
 impl Default for LanceConfig {
     fn default() -> Self {
         let path = directories::ProjectDirs::from("", "", "berry")
-            .map(|dirs| dirs.data_dir().join("lancedb").to_string_lossy().to_string())
+            .map(|dirs| {
+                dirs.data_dir()
+                    .join("lancedb")
+                    .to_string_lossy()
+                    .to_string()
+            })
             .unwrap_or_else(|| "lancedb".to_string());
 
         Self {

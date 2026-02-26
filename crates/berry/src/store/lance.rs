@@ -54,10 +54,7 @@ impl LanceStore {
             Field::new("content", DataType::LargeUtf8, false),
             Field::new(
                 "vector",
-                DataType::FixedSizeList(
-                    Arc::new(Field::new("item", DataType::Float32, true)),
-                    dim,
-                ),
+                DataType::FixedSizeList(Arc::new(Field::new("item", DataType::Float32, true)), dim),
                 true,
             ),
             Field::new("memory_type", DataType::Utf8, false),
@@ -76,11 +73,10 @@ impl LanceStore {
         let schema = self.memory_schema();
         let dim = self.embedding_service.dimension() as i32;
 
-        let vector_array =
-            arrow_array::FixedSizeListArray::from_iter_primitive::<Float32Type, _, _>(
-                vec![Some(embedding.into_iter().map(Some).collect::<Vec<_>>())],
-                dim,
-            );
+        let vector_array = arrow_array::FixedSizeListArray::from_iter_primitive::<Float32Type, _, _>(
+            vec![Some(embedding.into_iter().map(Some).collect::<Vec<_>>())],
+            dim,
+        );
 
         let owner_array: ArrayRef = if let Some(ref owner) = memory.owner {
             Arc::new(StringArray::from(vec![Some(owner.as_str())]))
@@ -96,21 +92,24 @@ impl LanceStore {
         let visibility_str = memory.visibility.to_string();
         let shared_with_str = memory.shared_with.join(",");
 
-        RecordBatch::try_new(schema, vec![
-            Arc::new(StringArray::from(vec![memory.id.as_str()])),
-            Arc::new(arrow_array::LargeStringArray::from(vec![
-                memory.content.as_str(),
-            ])),
-            Arc::new(vector_array),
-            Arc::new(StringArray::from(vec![memory_type_str.as_str()])),
-            Arc::new(StringArray::from(vec![tags_str.as_str()])),
-            Arc::new(StringArray::from(vec![memory.created_by.as_str()])),
-            Arc::new(StringArray::from(vec![created_at_str.as_str()])),
-            Arc::new(StringArray::from(vec![updated_at_str.as_str()])),
-            owner_array,
-            Arc::new(StringArray::from(vec![visibility_str.as_str()])),
-            Arc::new(StringArray::from(vec![shared_with_str.as_str()])),
-        ])
+        RecordBatch::try_new(
+            schema,
+            vec![
+                Arc::new(StringArray::from(vec![memory.id.as_str()])),
+                Arc::new(arrow_array::LargeStringArray::from(vec![
+                    memory.content.as_str(),
+                ])),
+                Arc::new(vector_array),
+                Arc::new(StringArray::from(vec![memory_type_str.as_str()])),
+                Arc::new(StringArray::from(vec![tags_str.as_str()])),
+                Arc::new(StringArray::from(vec![memory.created_by.as_str()])),
+                Arc::new(StringArray::from(vec![created_at_str.as_str()])),
+                Arc::new(StringArray::from(vec![updated_at_str.as_str()])),
+                owner_array,
+                Arc::new(StringArray::from(vec![visibility_str.as_str()])),
+                Arc::new(StringArray::from(vec![shared_with_str.as_str()])),
+            ],
+        )
         .map_err(|e| StoreError::InvalidData(format!("Failed to create RecordBatch: {}", e)))
     }
 
@@ -121,10 +120,7 @@ impl LanceStore {
                 if let Some(s) = arr.as_any().downcast_ref::<StringArray>() {
                     return Ok(s.value(row).to_string());
                 }
-                if let Some(s) = arr
-                    .as_any()
-                    .downcast_ref::<arrow_array::LargeStringArray>()
-                {
+                if let Some(s) = arr.as_any().downcast_ref::<arrow_array::LargeStringArray>() {
                     return Ok(s.value(row).to_string());
                 }
             }
@@ -220,9 +216,7 @@ impl LanceStore {
             .open_table(&self.table_name)
             .execute()
             .await
-            .map_err(|e| {
-                StoreError::InitializationFailed(format!("Failed to open table: {}", e))
-            })
+            .map_err(|e| StoreError::InitializationFailed(format!("Failed to open table: {}", e)))
     }
 }
 
@@ -230,14 +224,9 @@ impl LanceStore {
 impl VectorStore for LanceStore {
     async fn initialize(&self) -> StoreResult<()> {
         // Check if table already exists
-        let tables = self
-            .db
-            .table_names()
-            .execute()
-            .await
-            .map_err(|e| {
-                StoreError::InitializationFailed(format!("Failed to list tables: {}", e))
-            })?;
+        let tables = self.db.table_names().execute().await.map_err(|e| {
+            StoreError::InitializationFailed(format!("Failed to list tables: {}", e))
+        })?;
 
         if tables.contains(&self.table_name) {
             tracing::debug!("Table '{}' already exists", self.table_name);
@@ -415,12 +404,13 @@ impl VectorStore for LanceStore {
             .only_if(format!("id = '{}'", id))
             .column("visibility", format!("'{}'", memory.visibility))
             .column("shared_with", format!("'{}'", memory.shared_with.join(",")))
-            .column("updated_at", format!("'{}'", memory.updated_at.to_rfc3339()))
+            .column(
+                "updated_at",
+                format!("'{}'", memory.updated_at.to_rfc3339()),
+            )
             .execute()
             .await
-            .map_err(|e| {
-                StoreError::QueryFailed(format!("Failed to update visibility: {}", e))
-            })?;
+            .map_err(|e| StoreError::QueryFailed(format!("Failed to update visibility: {}", e)))?;
 
         Ok(memory)
     }
@@ -474,10 +464,7 @@ mod tests {
             Field::new("content", DataType::LargeUtf8, false),
             Field::new(
                 "vector",
-                DataType::FixedSizeList(
-                    Arc::new(Field::new("item", DataType::Float32, true)),
-                    dim,
-                ),
+                DataType::FixedSizeList(Arc::new(Field::new("item", DataType::Float32, true)), dim),
                 true,
             ),
             Field::new("memory_type", DataType::Utf8, false),

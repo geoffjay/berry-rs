@@ -8,7 +8,9 @@ use std::sync::Arc;
 use anyhow::Result;
 
 use berry::config::load_config;
-use berry::store::{ChromaStore, EmbeddingService, LanceStore, VectorStore, create_embedding_service};
+use berry::store::{
+    ChromaStore, EmbeddingService, LanceStore, VectorStore, create_embedding_service,
+};
 use berry::types::CreateMemoryRequest;
 
 /// Arguments for the migrate command.
@@ -50,10 +52,7 @@ async fn run_to_lance(
 ) -> Result<()> {
     // Source: ChromaDB
     let source_store = ChromaStore::new(&config.chroma, embedding_service.clone());
-    println!(
-        "Source: ChromaDB collection '{}'",
-        config.chroma.collection
-    );
+    println!("Source: ChromaDB collection '{}'", config.chroma.collection);
     source_store.initialize().await?;
 
     let memories = source_store.list_all().await?;

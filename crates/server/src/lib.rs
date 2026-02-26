@@ -57,10 +57,7 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
 
     // Create store via factory
     let store = create_store(&app_config).await.unwrap_or_else(|e| {
-        tracing::warn!(
-            "Failed to create store: {}. Falling back to ChromaDB.",
-            e
-        );
+        tracing::warn!("Failed to create store: {}. Falling back to ChromaDB.", e);
         let embedding_service = Arc::from(berry::store::NoOpEmbedding::new())
             as Arc<dyn berry::store::EmbeddingService>;
         Arc::new(berry::store::ChromaStore::new(

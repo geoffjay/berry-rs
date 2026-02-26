@@ -128,18 +128,9 @@ async fn test_list_all() {
     let tmp = TempDir::new().unwrap();
     let store = create_test_store(&tmp).await;
 
-    store
-        .create(make_request("Memory one"))
-        .await
-        .unwrap();
-    store
-        .create(make_request("Memory two"))
-        .await
-        .unwrap();
-    store
-        .create(make_request("Memory three"))
-        .await
-        .unwrap();
+    store.create(make_request("Memory one")).await.unwrap();
+    store.create(make_request("Memory two")).await.unwrap();
+    store.create(make_request("Memory three")).await.unwrap();
 
     let all = store.list_all().await.unwrap();
     assert_eq!(all.len(), 3);
