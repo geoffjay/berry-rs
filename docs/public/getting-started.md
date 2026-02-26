@@ -59,13 +59,21 @@ Add this line to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to make it p
 
 ### Initialize Configuration
 
+Berry uses a common configuration file for settings. The configuration file location is platform-specific:
+
+| Platform | Configuration Path |
+|----------|-------------------|
+| Linux    | `~/.config/berry/config.jsonc` |
+| macOS    | `~/Library/Application Support/berry/config.jsonc` |
+| Windows  | `%APPDATA%\berry\config.jsonc` |
+
 Create the configuration file:
 
 ```bash
 berry init
 ```
 
-This creates `~/.config/berry/config.jsonc` with default settings. You can also create it manually:
+This creates the file in the platform dependent location with default settings. You can also create it manually:
 
 ```bash
 mkdir -p ~/.config/berry

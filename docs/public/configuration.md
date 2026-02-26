@@ -29,6 +29,9 @@ If the file doesn't exist, Berry uses default values. Create it with `berry init
   // Berry Configuration
   // See https://github.com/geoffjay/berry-rs for documentation
 
+  // Vector store backend: "chroma" or "lance"
+  "store": "chroma",
+
   // Server connection settings
   "server": {
     // URL of the Berry server
@@ -50,7 +53,7 @@ If the file doesn't exist, Berry uses default values. Create it with `berry init
     "visibility": "public"
   },
 
-  // ChromaDB configuration
+  // ChromaDB configuration (used when store is "chroma")
   "chroma": {
     // ChromaDB server URL
     "url": "http://localhost:8000",
@@ -69,11 +72,31 @@ If the file doesn't exist, Berry uses default values. Create it with `berry init
 
     // Optional: Database name (for ChromaDB Cloud or multi-tenant setups)
     // "database": "your-database"
+  },
+
+  // LanceDB configuration (used when store is "lance")
+  "lance": {
+    // Path to the LanceDB database directory
+    // Default is platform-specific (see LanceDB section below)
+    "path": "/path/to/lancedb",
+
+    // Table name for storing memories
+    "table": "berry_memories"
   }
 }
 ```
 
 ### Configuration Options
+
+#### `store`
+
+The vector store backend to use for storing memories.
+
+- **Type:** `string`
+- **Default:** `"chroma"`
+- **Options:**
+  - `"chroma"` - ChromaDB (requires a running ChromaDB server)
+  - `"lance"` - LanceDB (embedded, no server required)
 
 #### `server.url`
 
@@ -163,6 +186,26 @@ Database name for ChromaDB Cloud or multi-tenant deployments (optional).
 - **Type:** `string` (optional)
 - **Example:** `"my-database"`
 
+#### `lance.path`
+
+The filesystem path to the LanceDB database directory. LanceDB is an embedded database, so no server is required — data is stored directly on disk at this path.
+
+- **Type:** `string`
+- **Default:** Platform-specific:
+  | Platform | Default Path |
+  |----------|-------------|
+  | Linux    | `~/.local/share/berry/lancedb` |
+  | macOS    | `~/Library/Application Support/berry/lancedb` |
+  | Windows  | `%APPDATA%\berry\data\lancedb` |
+- **Example:** `"/path/to/my/lancedb"`
+
+#### `lance.table`
+
+The name of the LanceDB table to use for storing memories.
+
+- **Type:** `string`
+- **Default:** `"berry_memories"`
+
 ## Environment Variables
 
 Environment variables override configuration file values.
@@ -171,12 +214,20 @@ Environment variables override configuration file values.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `BERRY_STORE` | Vector store backend (`chroma`, `chromadb`, `lance`, `lancedb`) | `chroma` |
 | `BERRY_SERVER_URL` | Berry server URL | `http://localhost:4114` |
 | `BERRY_TIMEOUT` | Request timeout (ms) | `5000` |
 | `BERRY_CREATED_BY` | Default creator | `user` |
 | `BERRY_DEFAULT_TYPE` | Default memory type | `information` |
 | `BERRY_LOG` | Log level | `info` |
 | `BERRY_LOG_FORMAT` | Log format (`text` or `json`) | `text` |
+
+### LanceDB Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LANCE_DB_PATH` | Path to LanceDB database directory | Platform-specific (see above) |
+| `LANCE_TABLE` | Table name for memories | `berry_memories` |
 
 ### ChromaDB Environment Variables
 
@@ -247,6 +298,40 @@ Example:
 
 ```bash
 berry-server --port 8080 --host 0.0.0.0
+```
+
+## LanceDB Configuration
+
+LanceDB is an embedded vector database — no server is required. Data is stored directly on the local filesystem, making it ideal for single-node deployments, development, and environments where running a separate database server is undesirable.
+
+> **Note**: LanceDB support requires Berry to be compiled with the `lancedb-store` feature flag. Pre-built releases may not include this feature.
+
+### Using Environment Variables
+
+```bash
+export BERRY_STORE=lance
+export LANCE_DB_PATH=/path/to/lancedb
+export LANCE_TABLE=berry_memories
+
+berry serve
+```
+
+### Using Configuration File
+
+```jsonc
+{
+  "store": "lance",
+  "lance": {
+    "path": "/path/to/lancedb",
+    "table": "berry_memories"
+  }
+}
+```
+
+### Building with LanceDB Support
+
+```bash
+cargo build --release --features berry/lancedb-store
 ```
 
 ## ChromaDB Cloud Configuration

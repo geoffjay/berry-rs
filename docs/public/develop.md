@@ -21,55 +21,6 @@ cargo build
 cargo test --all
 ```
 
-## Project Structure
-
-```
-berry-rs/
-├── Cargo.toml                    # Workspace manifest
-├── crates/
-│   ├── berry/                    # Shared library crate
-│   │   └── src/
-│   │       ├── lib.rs            # Library entry point
-│   │       ├── types/            # Type definitions
-│   │       │   ├── mod.rs
-│   │       │   ├── memory.rs     # Memory struct
-│   │       │   ├── memory_type.rs
-│   │       │   ├── visibility.rs
-│   │       │   └── requests.rs   # Request/response types
-│   │       ├── store/            # Storage abstraction
-│   │       │   ├── mod.rs
-│   │       │   ├── traits.rs     # VectorStore trait
-│   │       │   └── chroma.rs     # ChromaDB implementation
-│   │       ├── config/           # Configuration
-│   │       │   ├── mod.rs
-│   │       │   ├── types.rs
-│   │       │   └── loader.rs
-│   │       ├── error.rs          # Error types
-│   │       └── logging.rs        # Logging setup
-│   ├── cli/                      # CLI binary (berry)
-│   │   └── src/
-│   │       ├── main.rs
-│   │       ├── client.rs         # HTTP client
-│   │       ├── output.rs         # Display formatting
-│   │       └── commands/         # CLI commands
-│   ├── server/                   # HTTP server (berry-server)
-│   │   └── src/
-│   │       ├── main.rs
-│   │       ├── state.rs          # Application state
-│   │       └── routes/           # HTTP handlers
-│   └── mcp/                      # MCP server (berry-mcp)
-│       └── src/
-│           ├── main.rs
-│           ├── handler.rs        # MCP client
-│           └── tools/            # MCP tool definitions
-├── docs/                         # Documentation
-├── scripts/
-│   └── install.sh                # Installation script
-└── .github/workflows/
-    ├── ci.yml                    # CI workflow
-    └── release.yml               # Release workflow
-```
-
 ## Running the Services
 
 Berry requires two services to be running:
