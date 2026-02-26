@@ -3,6 +3,17 @@ revision = 2
 requires-python = ">=3.12.2"
 
 [[package]]
+name = "berry-docs"
+version = "0.4.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "zensical" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "zensical", specifier = ">=0.0.20" }]
+
+[[package]]
 name = "click"
 version = "8.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -40,17 +51,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/b7/b1/af95bcae8549f1f3f
 wheels = [
     { url = "https://files.pythonhosted.org/packages/59/1b/6ef961f543593969d25b2afe57a3564200280528caa9bd1082eecdd7b3bc/markdown-3.10.1-py3-none-any.whl", hash = "sha256:867d788939fe33e4b736426f5b9f651ad0c0ae0ecf89df0ca5d1176c70812fe3", size = 107684, upload-time = "2026-01-21T18:09:27.203Z" },
 ]
-
-[[package]]
-name = "persona"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "zensical" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "zensical", specifier = ">=0.0.20" }]
 
 [[package]]
 name = "pygments"
