@@ -1,6 +1,6 @@
 [project]
 name = "berry-docs"
-version = "0.5.0"
+version = "0.5.1"
 description = "Documentation for Berry - A semantic memory system for AI assistants"
 readme = "README.md"
 requires-python = ">=3.12.2"
