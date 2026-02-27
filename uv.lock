@@ -4,7 +4,7 @@ requires-python = ">=3.12.2"
 
 [[package]]
 name = "berry-docs"
-version = "0.4.3"
+version = "0.5.0"
 source = { virtual = "." }
 dependencies = [
     { name = "zensical" },
