@@ -124,6 +124,13 @@ Create a file called `com.berry.server.plist` in `~/Library/LaunchAgents` with t
         <!-- <string>chroma</string> -->
         <!-- <key>CHROMA_URL</key> -->
         <!-- <string>http://localhost:8000</string> -->
+        <!-- OpenAI Embedding using the all-minilm model from Ollama -->
+        <key>EMBEDDING_PROVIDER</key>
+        <string>openai</string>
+        <key>EMBEDDING_MODEL</key>
+        <string>all-minilm</string>
+        <key>EMBEDDING_BASE_URL</key>
+        <string>http://localhost:11434/v1</string>
     </dict>
 
     <key>RunAtLoad</key>
