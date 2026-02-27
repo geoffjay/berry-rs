@@ -8,9 +8,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::error::{StoreError, StoreResult};
-use crate::types::{
-    CreateDocumentRequest, Document, ListDocumentsRequest, UpdateDocumentRequest,
-};
+use crate::types::{CreateDocumentRequest, Document, ListDocumentsRequest, UpdateDocumentRequest};
 
 use super::traits::DocumentStore;
 
@@ -274,17 +272,11 @@ impl DocumentStore for FsDocumentStore {
 
     async fn initialize(&self) -> StoreResult<()> {
         fs::create_dir_all(&self.path).await.map_err(|e| {
-            StoreError::InitializationFailed(format!(
-                "Failed to create documents directory: {}",
-                e
-            ))
+            StoreError::InitializationFailed(format!("Failed to create documents directory: {}", e))
         })?;
 
         fs::create_dir_all(self.meta_dir()).await.map_err(|e| {
-            StoreError::InitializationFailed(format!(
-                "Failed to create metadata directory: {}",
-                e
-            ))
+            StoreError::InitializationFailed(format!("Failed to create metadata directory: {}", e))
         })?;
 
         Ok(())
@@ -477,10 +469,7 @@ mod tests {
             .await
             .unwrap();
 
-        let docs = store
-            .list(ListDocumentsRequest::default())
-            .await
-            .unwrap();
+        let docs = store.list(ListDocumentsRequest::default()).await.unwrap();
         assert_eq!(docs.len(), 2);
     }
 
@@ -553,10 +542,7 @@ mod tests {
     #[tokio::test]
     async fn test_list_documents_empty() {
         let (_dir, store) = setup().await;
-        let docs = store
-            .list(ListDocumentsRequest::default())
-            .await
-            .unwrap();
+        let docs = store.list(ListDocumentsRequest::default()).await.unwrap();
         assert!(docs.is_empty());
     }
 }

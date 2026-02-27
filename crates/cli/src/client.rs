@@ -259,10 +259,7 @@ impl BerryClient {
     }
 
     /// List documents with optional filters.
-    pub async fn list_documents(
-        &self,
-        request: ListDocumentsRequest,
-    ) -> Result<Vec<Document>> {
+    pub async fn list_documents(&self, request: ListDocumentsRequest) -> Result<Vec<Document>> {
         let mut url = format!("{}/v1/documents", self.base_url);
         let mut params = Vec::new();
 

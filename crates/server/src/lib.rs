@@ -83,15 +83,24 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
     if app_config.documents.enabled {
         match create_document_store(&app_config.documents) {
             Ok(doc_store) => {
-                tracing::info!("Initializing document store at: {}", app_config.documents.path);
+                tracing::info!(
+                    "Initializing document store at: {}",
+                    app_config.documents.path
+                );
                 if let Err(e) = doc_store.initialize().await {
-                    tracing::warn!("Failed to initialize document store: {}. Documents will be unavailable.", e);
+                    tracing::warn!(
+                        "Failed to initialize document store: {}. Documents will be unavailable.",
+                        e
+                    );
                 } else {
                     state = state.with_doc_store(doc_store);
                 }
             }
             Err(e) => {
-                tracing::warn!("Failed to create document store: {}. Documents will be unavailable.", e);
+                tracing::warn!(
+                    "Failed to create document store: {}. Documents will be unavailable.",
+                    e
+                );
             }
         }
     }
@@ -697,8 +706,7 @@ mod tests {
     }
 
     fn app_with_doc_store(doc_store: MockDocumentStore) -> Router {
-        let state = AppState::new(MockStore::new())
-            .with_doc_store(std::sync::Arc::new(doc_store));
+        let state = AppState::new(MockStore::new()).with_doc_store(std::sync::Arc::new(doc_store));
         create_router(state)
     }
 

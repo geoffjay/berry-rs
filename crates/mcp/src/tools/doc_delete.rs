@@ -28,6 +28,5 @@ impl DocDeleteTool {
     pub const NAME: &'static str = "doc_delete";
 
     /// Tool description.
-    pub const DESCRIPTION: &'static str =
-        "Delete a document from the Berry document store.";
+    pub const DESCRIPTION: &'static str = "Delete a document from the Berry document store.";
 }

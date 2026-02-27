@@ -351,9 +351,7 @@ async fn main() -> Result<()> {
                     content,
                     tags,
                 },
-                DocCommands::Delete { id, force } => {
-                    commands::doc::DocAction::Delete { id, force }
-                }
+                DocCommands::Delete { id, force } => commands::doc::DocAction::Delete { id, force },
                 DocCommands::List { tags, created_by } => {
                     commands::doc::DocAction::List { tags, created_by }
                 }

@@ -10,7 +10,9 @@ use async_trait::async_trait;
 use tempfile::TempDir;
 use tokio::net::TcpListener;
 
-use berry::config::{ChromaConfig, Config, DocumentsConfig, EmbeddingConfig, LanceConfig, StoreBackend};
+use berry::config::{
+    ChromaConfig, Config, DocumentsConfig, EmbeddingConfig, LanceConfig, StoreBackend,
+};
 use berry::error::StoreResult;
 use berry::store::{ChromaStore, EmbeddingService, VectorStore};
 

@@ -3,9 +3,7 @@
 use async_trait::async_trait;
 
 use crate::error::StoreResult;
-use crate::types::{
-    CreateDocumentRequest, Document, ListDocumentsRequest, UpdateDocumentRequest,
-};
+use crate::types::{CreateDocumentRequest, Document, ListDocumentsRequest, UpdateDocumentRequest};
 
 /// Trait for document storage backends.
 ///

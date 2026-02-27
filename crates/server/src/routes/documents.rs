@@ -16,8 +16,10 @@ use crate::state::AppState;
 /// Helper to get the document store or return a 501 error.
 fn get_doc_store(
     state: &AppState,
-) -> Result<&std::sync::Arc<dyn berry::documents::DocumentStore>, (StatusCode, Json<DocumentResponse>)>
-{
+) -> Result<
+    &std::sync::Arc<dyn berry::documents::DocumentStore>,
+    (StatusCode, Json<DocumentResponse>),
+> {
     state.doc_store.as_ref().ok_or_else(|| {
         (
             StatusCode::NOT_IMPLEMENTED,

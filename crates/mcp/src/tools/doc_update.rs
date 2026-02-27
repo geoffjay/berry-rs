@@ -36,6 +36,5 @@ impl DocUpdateTool {
     pub const NAME: &'static str = "doc_update";
 
     /// Tool description.
-    pub const DESCRIPTION: &'static str =
-        "Update an existing document in the Berry document store. All fields are optional for partial updates.";
+    pub const DESCRIPTION: &'static str = "Update an existing document in the Berry document store. All fields are optional for partial updates.";
 }
