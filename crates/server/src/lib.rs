@@ -14,8 +14,6 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use std::sync::Arc;
-
 use berry::config::load_config;
 use berry::store::create_store;
 
@@ -56,15 +54,16 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
     tracing::info!("Using store backend: {:?}", app_config.store);
 
     // Create store via factory
-    let store = create_store(&app_config).await.unwrap_or_else(|e| {
-        tracing::warn!("Failed to create store: {}. Falling back to ChromaDB.", e);
-        let embedding_service = Arc::from(berry::store::NoOpEmbedding::new())
-            as Arc<dyn berry::store::EmbeddingService>;
-        Arc::new(berry::store::ChromaStore::new(
-            &app_config.chroma,
-            embedding_service,
-        ))
-    });
+    let store = create_store(&app_config).await.map_err(|e| {
+        tracing::error!("Failed to create {:?} store: {}", app_config.store, e);
+        tracing::error!(
+            "Hint: check your Berry configuration. Common fixes:\n  \
+             - For OpenAI embeddings: set OPENAI_API_KEY or EMBEDDING_API_KEY\n  \
+             - For local embeddings: rebuild with 'local-embeddings' feature\n  \
+             - To use LanceDB without embeddings: set embedding.provider = \"none\""
+        );
+        anyhow::anyhow!("Failed to create store: {}", e)
+    })?;
 
     // Initialize store (create collection/table if needed)
     tracing::info!("Initializing vector store...");
