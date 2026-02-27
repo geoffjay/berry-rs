@@ -671,15 +671,15 @@ mod tests {
             let results: Vec<Document> = docs
                 .iter()
                 .filter(|d| {
-                    if let Some(ref tags) = request.tags {
-                        if !tags.iter().any(|t| d.tags.contains(t)) {
-                            return false;
-                        }
+                    if let Some(ref tags) = request.tags
+                        && !tags.iter().any(|t| d.tags.contains(t))
+                    {
+                        return false;
                     }
-                    if let Some(ref created_by) = request.created_by {
-                        if d.created_by != *created_by {
-                            return false;
-                        }
+                    if let Some(ref created_by) = request.created_by
+                        && d.created_by != *created_by
+                    {
+                        return false;
                     }
                     true
                 })

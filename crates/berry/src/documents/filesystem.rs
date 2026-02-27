@@ -250,15 +250,15 @@ impl DocumentStore for FsDocumentStore {
             };
 
             // Apply filters
-            if let Some(ref filter_tags) = request.tags {
-                if !filter_tags.iter().any(|t| doc.tags.contains(t)) {
-                    continue;
-                }
+            if let Some(ref filter_tags) = request.tags
+                && !filter_tags.iter().any(|t| doc.tags.contains(t))
+            {
+                continue;
             }
-            if let Some(ref created_by) = request.created_by {
-                if doc.created_by != *created_by {
-                    continue;
-                }
+            if let Some(ref created_by) = request.created_by
+                && doc.created_by != *created_by
+            {
+                continue;
             }
 
             documents.push(doc);

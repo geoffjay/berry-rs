@@ -14,6 +14,7 @@ use berry::{
 use crate::state::AppState;
 
 /// Helper to get the document store or return a 501 error.
+#[allow(clippy::result_large_err)]
 fn get_doc_store(
     state: &AppState,
 ) -> Result<
