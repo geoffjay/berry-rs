@@ -82,6 +82,15 @@ If the file doesn't exist, Berry uses default values. Create it with `berry init
 
     // Table name for storing memories
     "table": "berry_memories"
+  },
+
+  // Document store configuration
+  "documents": {
+    // Path to the documents directory (platform-specific default if omitted)
+    "path": "/path/to/documents",
+
+    // Set to false to disable document management
+    "enabled": true
   }
 }
 ```
@@ -206,6 +215,26 @@ The name of the LanceDB table to use for storing memories.
 - **Type:** `string`
 - **Default:** `"berry_memories"`
 
+#### `documents.path`
+
+The filesystem path to the documents directory. Documents are stored as markdown files with sidecar JSON metadata.
+
+- **Type:** `string`
+- **Default:** Platform-specific:
+  | Platform | Default Path |
+  |----------|-------------|
+  | Linux    | `~/.local/share/berry/documents` |
+  | macOS    | `~/Library/Application Support/berry/documents` |
+  | Windows  | `%APPDATA%\berry\data\documents` |
+- **Example:** `"/path/to/my/documents"`
+
+#### `documents.enabled`
+
+Whether document management is enabled. When disabled, document API endpoints return `501 Not Implemented`.
+
+- **Type:** `boolean`
+- **Default:** `true`
+
 ## Environment Variables
 
 Environment variables override configuration file values.
@@ -221,6 +250,13 @@ Environment variables override configuration file values.
 | `BERRY_DEFAULT_TYPE` | Default memory type | `information` |
 | `BERRY_LOG` | Log level | `info` |
 | `BERRY_LOG_FORMAT` | Log format (`text` or `json`) | `text` |
+
+### Documents Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BERRY_DOCUMENTS_PATH` | Path to the documents directory | Platform-specific (see above) |
+| `BERRY_DOCUMENTS_ENABLED` | Enable/disable document management (`true`/`false`) | `true` |
 
 ### LanceDB Environment Variables
 

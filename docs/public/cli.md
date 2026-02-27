@@ -210,6 +210,43 @@ berry mcp --server-url http://localhost:8080
 berry mcp --verbose
 ```
 
+### doc
+
+Manage markdown documents. See [Document Store](./documents.md) for full details.
+
+```bash
+berry doc <COMMAND>
+```
+
+**Subcommands:**
+
+| Command | Description |
+|---------|-------------|
+| `create <TITLE>` | Create a new document |
+| `read <ID>` | Read a document by slug ID |
+| `update <ID>` | Update a document |
+| `delete <ID>` | Delete a document |
+| `list` | List documents |
+
+**Examples:**
+
+```bash
+# Create a document
+berry doc create "Architecture Decisions" --content "# ADRs" --tags "architecture"
+
+# Read a document
+berry doc read architecture-decisions
+
+# Update content
+berry doc update architecture-decisions --content "# Updated ADRs"
+
+# List all documents
+berry doc list
+
+# Delete with confirmation skip
+berry doc delete -f architecture-decisions
+```
+
 ### init
 
 Initialize configuration file.
@@ -310,6 +347,8 @@ The CLI respects the following environment variables (see [Configuration](./conf
 | `EMBEDDING_MODEL` | Embedding model name |
 | `EMBEDDING_BASE_URL` | Embedding API base URL |
 | `EMBEDDING_API_KEY` | Embedding API key (optional for local services) |
+| `BERRY_DOCUMENTS_PATH` | Path to the documents directory |
+| `BERRY_DOCUMENTS_ENABLED` | Enable/disable document management |
 
 ## Exit Codes
 
@@ -322,3 +361,4 @@ The CLI respects the following environment variables (see [Configuration](./conf
 
 - [Getting Started](./getting-started.md) - Installation and setup
 - [Configuration](./configuration.md) - Configuration options
+- [Document Store](./documents.md) - Document management guide
