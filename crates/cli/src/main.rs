@@ -138,6 +138,12 @@ enum Commands {
         verbose: bool,
     },
 
+    /// Manage documents
+    Doc {
+        #[command(subcommand)]
+        action: DocCommands,
+    },
+
     /// Initialize configuration
     Init {
         /// Overwrite existing config
@@ -158,6 +164,73 @@ enum Commands {
         /// Migrate from ChromaDB to LanceDB
         #[arg(long)]
         to_lance: bool,
+    },
+}
+
+/// Document subcommands.
+#[derive(Subcommand)]
+enum DocCommands {
+    /// Create a new document
+    Create {
+        /// Document title
+        title: String,
+
+        /// Document content (markdown)
+        #[arg(short = 'c', long)]
+        content: Option<String>,
+
+        /// Tags (comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        tags: Vec<String>,
+
+        /// Creator identifier
+        #[arg(long = "by", default_value = "user")]
+        created_by: String,
+    },
+
+    /// Read a document by ID
+    Read {
+        /// Document ID (slug)
+        id: String,
+    },
+
+    /// Update a document
+    Update {
+        /// Document ID (slug)
+        id: String,
+
+        /// New title
+        #[arg(short = 't', long)]
+        title: Option<String>,
+
+        /// New content (markdown)
+        #[arg(short = 'c', long)]
+        content: Option<String>,
+
+        /// New tags (comma-separated, replaces existing)
+        #[arg(long, value_delimiter = ',')]
+        tags: Option<Vec<String>>,
+    },
+
+    /// Delete a document
+    Delete {
+        /// Document ID (slug)
+        id: String,
+
+        /// Skip confirmation prompt
+        #[arg(short = 'f', long)]
+        force: bool,
+    },
+
+    /// List documents
+    List {
+        /// Filter by tags (comma-separated)
+        #[arg(long, value_delimiter = ',')]
+        tags: Option<Vec<String>>,
+
+        /// Filter by creator
+        #[arg(long = "by")]
+        created_by: Option<String>,
     },
 }
 
@@ -250,6 +323,46 @@ async fn main() -> Result<()> {
                 json_output,
             };
             commands::search(client, args).await
+        }
+
+        Some(Commands::Doc { action }) => {
+            let client = BerryClient::new(&config.server.url, config.server.timeout)?;
+            let doc_action = match action {
+                DocCommands::Create {
+                    title,
+                    content,
+                    tags,
+                    created_by,
+                } => commands::doc::DocAction::Create {
+                    title,
+                    content,
+                    tags,
+                    created_by,
+                },
+                DocCommands::Read { id } => commands::doc::DocAction::Read { id },
+                DocCommands::Update {
+                    id,
+                    title,
+                    content,
+                    tags,
+                } => commands::doc::DocAction::Update {
+                    id,
+                    title,
+                    content,
+                    tags,
+                },
+                DocCommands::Delete { id, force } => {
+                    commands::doc::DocAction::Delete { id, force }
+                }
+                DocCommands::List { tags, created_by } => {
+                    commands::doc::DocAction::List { tags, created_by }
+                }
+            };
+            let args = commands::doc::DocArgs {
+                action: doc_action,
+                json_output,
+            };
+            commands::doc(client, args).await
         }
 
         Some(Commands::Serve {

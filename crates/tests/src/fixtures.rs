@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use tempfile::TempDir;
 use tokio::net::TcpListener;
 
-use berry::config::{ChromaConfig, Config, EmbeddingConfig, LanceConfig, StoreBackend};
+use berry::config::{ChromaConfig, Config, DocumentsConfig, EmbeddingConfig, LanceConfig, StoreBackend};
 use berry::error::StoreResult;
 use berry::store::{ChromaStore, EmbeddingService, VectorStore};
 
@@ -177,6 +177,7 @@ pub fn create_test_config(chroma_url: &str, _config_dir: PathBuf) -> Config {
             model: String::new(),
             base_url: None,
         },
+        documents: DocumentsConfig::default(),
     }
 }
 

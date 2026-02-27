@@ -244,6 +244,18 @@ fn apply_env_overrides(config: &mut Config) {
     if let Ok(base_url) = env::var("EMBEDDING_BASE_URL") {
         config.embedding.base_url = Some(base_url);
     }
+
+    // Documents config
+    if let Ok(path) = env::var("BERRY_DOCUMENTS_PATH") {
+        config.documents.path = path;
+    }
+    if let Ok(enabled) = env::var("BERRY_DOCUMENTS_ENABLED") {
+        match enabled.to_lowercase().as_str() {
+            "true" | "1" | "yes" => config.documents.enabled = true,
+            "false" | "0" | "no" => config.documents.enabled = false,
+            _ => {}
+        }
+    }
 }
 
 /// Write a default configuration file.

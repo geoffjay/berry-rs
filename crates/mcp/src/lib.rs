@@ -15,8 +15,15 @@ use berry::config::load_config;
 pub mod handler;
 pub mod tools;
 
+use berry::{CreateDocumentRequest, ListDocumentsRequest, UpdateDocumentRequest};
+
 use handler::BerryMcpClient;
 use tools::{
+    doc_create::{DocCreateInput, DocCreateOutput, DocCreateTool},
+    doc_delete::{DocDeleteInput, DocDeleteOutput, DocDeleteTool},
+    doc_list::{DocListEntry, DocListInput, DocListOutput, DocListTool},
+    doc_read::{DocReadInput, DocReadOutput, DocReadTool},
+    doc_update::{DocUpdateInput, DocUpdateOutput, DocUpdateTool},
     forget::{ForgetInput, ForgetOutput, ForgetTool},
     recall::{RecallInput, RecallOutput, RecallTool},
     remember::{RememberInput, RememberOutput, RememberTool},
@@ -299,6 +306,106 @@ impl McpServer {
                     "required": ["query"]
                 }),
             },
+            McpTool {
+                name: DocCreateTool::NAME.to_string(),
+                description: DocCreateTool::DESCRIPTION.to_string(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "description": "Document title"
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "Markdown body content"
+                        },
+                        "tags": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Tags for the document"
+                        },
+                        "created_by": {
+                            "type": "string",
+                            "description": "Who is creating this document"
+                        }
+                    },
+                    "required": ["title", "content", "created_by"]
+                }),
+            },
+            McpTool {
+                name: DocReadTool::NAME.to_string(),
+                description: DocReadTool::DESCRIPTION.to_string(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Document ID (slug)"
+                        }
+                    },
+                    "required": ["id"]
+                }),
+            },
+            McpTool {
+                name: DocUpdateTool::NAME.to_string(),
+                description: DocUpdateTool::DESCRIPTION.to_string(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Document ID (slug) to update"
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "New title"
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "New markdown content"
+                        },
+                        "tags": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "New tags (replaces existing)"
+                        }
+                    },
+                    "required": ["id"]
+                }),
+            },
+            McpTool {
+                name: DocDeleteTool::NAME.to_string(),
+                description: DocDeleteTool::DESCRIPTION.to_string(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "description": "Document ID (slug) to delete"
+                        }
+                    },
+                    "required": ["id"]
+                }),
+            },
+            McpTool {
+                name: DocListTool::NAME.to_string(),
+                description: DocListTool::DESCRIPTION.to_string(),
+                input_schema: serde_json::json!({
+                    "type": "object",
+                    "properties": {
+                        "tags": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Filter by tags"
+                        },
+                        "created_by": {
+                            "type": "string",
+                            "description": "Filter by creator"
+                        }
+                    }
+                }),
+            },
         ];
 
         let result = ListToolsResult { tools };
@@ -314,6 +421,11 @@ impl McpServer {
             "recall" => self.call_recall(id, arguments).await,
             "forget" => self.call_forget(id, arguments).await,
             "search" => self.call_search(id, arguments).await,
+            "doc_create" => self.call_doc_create(id, arguments).await,
+            "doc_read" => self.call_doc_read(id, arguments).await,
+            "doc_update" => self.call_doc_update(id, arguments).await,
+            "doc_delete" => self.call_doc_delete(id, arguments).await,
+            "doc_list" => self.call_doc_list(id, arguments).await,
             _ => JsonRpcResponse::error(id, -32602, format!("Unknown tool: {}", tool_name)),
         }
     }
@@ -490,6 +602,197 @@ impl McpServer {
                 let output = SearchOutput {
                     success: false,
                     results: vec![],
+                    total: 0,
+                    error: Some(e.to_string()),
+                };
+                self.tool_response_error(id, output)
+            }
+        }
+    }
+
+    async fn call_doc_create(&self, id: Option<Value>, arguments: Value) -> JsonRpcResponse {
+        let input: DocCreateInput = match serde_json::from_value(arguments) {
+            Ok(i) => i,
+            Err(e) => {
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
+            }
+        };
+
+        let request = CreateDocumentRequest {
+            title: input.title,
+            content: input.content,
+            tags: input.tags.unwrap_or_default(),
+            created_by: input.created_by,
+        };
+
+        match self.client.doc_create(request).await {
+            Ok(doc) => {
+                let output = DocCreateOutput {
+                    success: true,
+                    id: Some(doc.id),
+                    title: Some(doc.title),
+                    error: None,
+                };
+                self.tool_response(id, output)
+            }
+            Err(e) => {
+                let output = DocCreateOutput {
+                    success: false,
+                    id: None,
+                    title: None,
+                    error: Some(e.to_string()),
+                };
+                self.tool_response_error(id, output)
+            }
+        }
+    }
+
+    async fn call_doc_read(&self, id: Option<Value>, arguments: Value) -> JsonRpcResponse {
+        let input: DocReadInput = match serde_json::from_value(arguments) {
+            Ok(i) => i,
+            Err(e) => {
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
+            }
+        };
+
+        match self.client.doc_read(&input.id).await {
+            Ok(Some(doc)) => {
+                let output = DocReadOutput {
+                    success: true,
+                    found: true,
+                    title: Some(doc.title),
+                    content: Some(doc.content),
+                    tags: Some(doc.tags),
+                    error: None,
+                };
+                self.tool_response(id, output)
+            }
+            Ok(None) => {
+                let output = DocReadOutput {
+                    success: true,
+                    found: false,
+                    title: None,
+                    content: None,
+                    tags: None,
+                    error: None,
+                };
+                self.tool_response(id, output)
+            }
+            Err(e) => {
+                let output = DocReadOutput {
+                    success: false,
+                    found: false,
+                    title: None,
+                    content: None,
+                    tags: None,
+                    error: Some(e.to_string()),
+                };
+                self.tool_response_error(id, output)
+            }
+        }
+    }
+
+    async fn call_doc_update(&self, id: Option<Value>, arguments: Value) -> JsonRpcResponse {
+        let input: DocUpdateInput = match serde_json::from_value(arguments) {
+            Ok(i) => i,
+            Err(e) => {
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
+            }
+        };
+
+        let request = UpdateDocumentRequest {
+            title: input.title,
+            content: input.content,
+            tags: input.tags,
+        };
+
+        match self.client.doc_update(&input.id, request).await {
+            Ok(doc) => {
+                let output = DocUpdateOutput {
+                    success: true,
+                    id: Some(doc.id),
+                    title: Some(doc.title),
+                    error: None,
+                };
+                self.tool_response(id, output)
+            }
+            Err(e) => {
+                let output = DocUpdateOutput {
+                    success: false,
+                    id: None,
+                    title: None,
+                    error: Some(e.to_string()),
+                };
+                self.tool_response_error(id, output)
+            }
+        }
+    }
+
+    async fn call_doc_delete(&self, id: Option<Value>, arguments: Value) -> JsonRpcResponse {
+        let input: DocDeleteInput = match serde_json::from_value(arguments) {
+            Ok(i) => i,
+            Err(e) => {
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
+            }
+        };
+
+        match self.client.doc_delete(&input.id).await {
+            Ok(deleted) => {
+                let output = DocDeleteOutput {
+                    success: true,
+                    deleted,
+                    error: None,
+                };
+                self.tool_response(id, output)
+            }
+            Err(e) => {
+                let output = DocDeleteOutput {
+                    success: false,
+                    deleted: false,
+                    error: Some(e.to_string()),
+                };
+                self.tool_response_error(id, output)
+            }
+        }
+    }
+
+    async fn call_doc_list(&self, id: Option<Value>, arguments: Value) -> JsonRpcResponse {
+        let input: DocListInput = match serde_json::from_value(arguments) {
+            Ok(i) => i,
+            Err(e) => {
+                return JsonRpcResponse::error(id, -32602, format!("Invalid arguments: {}", e));
+            }
+        };
+
+        let request = ListDocumentsRequest {
+            tags: input.tags,
+            created_by: input.created_by,
+        };
+
+        match self.client.doc_list(request).await {
+            Ok(documents) => {
+                let entries: Vec<DocListEntry> = documents
+                    .iter()
+                    .map(|d| DocListEntry {
+                        id: d.id.clone(),
+                        title: d.title.clone(),
+                        tags: d.tags.clone(),
+                        created_by: d.created_by.clone(),
+                    })
+                    .collect();
+                let total = entries.len();
+                let output = DocListOutput {
+                    success: true,
+                    documents: entries,
+                    total,
+                    error: None,
+                };
+                self.tool_response(id, output)
+            }
+            Err(e) => {
+                let output = DocListOutput {
+                    success: false,
+                    documents: vec![],
                     total: 0,
                     error: Some(e.to_string()),
                 };

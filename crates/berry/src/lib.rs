@@ -50,6 +50,7 @@
 //! ```
 
 pub mod config;
+pub mod documents;
 pub mod error;
 pub mod logging;
 pub mod store;
@@ -61,6 +62,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Re-export commonly used types at the crate root for convenience.
 pub use error::{BerryError, ConfigError, StoreError};
 pub use types::{
-    CreateMemoryRequest, DeleteResponse, HealthResponse, Memory, MemoryResponse, MemoryType,
-    SearchRequest, SearchResponse, UpdateVisibilityRequest, VisibilityLevel,
+    CreateDocumentRequest, CreateMemoryRequest, DeleteResponse, Document, DocumentListResponse,
+    DocumentResponse, HealthResponse, ListDocumentsRequest, Memory, MemoryResponse, MemoryType,
+    SearchRequest, SearchResponse, UpdateDocumentRequest, UpdateVisibilityRequest, VisibilityLevel,
 };

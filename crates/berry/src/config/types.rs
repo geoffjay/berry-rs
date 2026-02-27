@@ -31,6 +31,8 @@ pub struct Config {
     pub lance: LanceConfig,
     /// Embedding service configuration
     pub embedding: EmbeddingConfig,
+    /// Documents configuration
+    pub documents: DocumentsConfig,
 }
 
 /// Server connection configuration.
@@ -132,6 +134,34 @@ impl Default for LanceConfig {
         Self {
             path,
             table: "berry_memories".to_string(),
+        }
+    }
+}
+
+/// Documents configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct DocumentsConfig {
+    /// Path to the documents directory
+    pub path: String,
+    /// Whether document management is enabled
+    pub enabled: bool,
+}
+
+impl Default for DocumentsConfig {
+    fn default() -> Self {
+        let path = directories::ProjectDirs::from("", "", "berry")
+            .map(|dirs| {
+                dirs.data_dir()
+                    .join("documents")
+                    .to_string_lossy()
+                    .to_string()
+            })
+            .unwrap_or_else(|| "documents".to_string());
+
+        Self {
+            path,
+            enabled: true,
         }
     }
 }

@@ -15,13 +15,15 @@ use tower_http::{
 };
 
 use berry::config::load_config;
+use berry::documents::create_document_store;
 use berry::store::create_store;
 
 pub mod routes;
 pub mod state;
 
 use routes::{
-    create_memory, delete_memory, get_memory, health_handler, schema_handler, search_handler,
+    create_document, create_memory, delete_document, delete_memory, get_document, get_memory,
+    health_handler, list_documents, schema_handler, search_handler, update_document,
     update_visibility,
 };
 use state::AppState;
@@ -75,7 +77,24 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
     }
 
     // Create application state
-    let state = AppState::from_arc(store);
+    let mut state = AppState::from_arc(store);
+
+    // Create and initialize document store if enabled
+    if app_config.documents.enabled {
+        match create_document_store(&app_config.documents) {
+            Ok(doc_store) => {
+                tracing::info!("Initializing document store at: {}", app_config.documents.path);
+                if let Err(e) = doc_store.initialize().await {
+                    tracing::warn!("Failed to initialize document store: {}. Documents will be unavailable.", e);
+                } else {
+                    state = state.with_doc_store(doc_store);
+                }
+            }
+            Err(e) => {
+                tracing::warn!("Failed to create document store: {}. Documents will be unavailable.", e);
+            }
+        }
+    }
 
     // Build router
     let app = Router::new()
@@ -86,6 +105,12 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
         .route("/v1/memory/{id}", get(get_memory))
         .route("/v1/memory/{id}", delete(delete_memory))
         .route("/v1/memory/{id}/visibility", patch(update_visibility))
+        // Document operations
+        .route("/v1/documents", post(create_document))
+        .route("/v1/documents", get(list_documents))
+        .route("/v1/documents/{id}", get(get_document))
+        .route("/v1/documents/{id}", patch(update_document))
+        .route("/v1/documents/{id}", delete(delete_document))
         // Search
         .route("/v1/search", post(search_handler))
         // Schema
@@ -118,6 +143,11 @@ pub fn create_router(state: AppState) -> Router {
         .route("/v1/memory/{id}", get(get_memory))
         .route("/v1/memory/{id}", delete(delete_memory))
         .route("/v1/memory/{id}/visibility", patch(update_visibility))
+        .route("/v1/documents", post(create_document))
+        .route("/v1/documents", get(list_documents))
+        .route("/v1/documents/{id}", get(get_document))
+        .route("/v1/documents/{id}", patch(update_document))
+        .route("/v1/documents/{id}", delete(delete_document))
         .route("/v1/search", post(search_handler))
         .route("/schema", get(schema_handler))
         .with_state(state)
@@ -129,9 +159,13 @@ mod tests {
     use async_trait::async_trait;
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
+    use berry::documents::DocumentStore;
     use berry::error::{StoreError, StoreResult};
     use berry::store::VectorStore;
-    use berry::types::{CreateMemoryRequest, Memory, MemoryType, SearchRequest, VisibilityLevel};
+    use berry::types::{
+        CreateDocumentRequest, CreateMemoryRequest, Document, ListDocumentsRequest, Memory,
+        MemoryType, SearchRequest, UpdateDocumentRequest, VisibilityLevel,
+    };
     use chrono::Utc;
     use http_body_util::BodyExt;
     use std::sync::Mutex;
@@ -533,5 +567,307 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    // --- Document Store Mock and Tests ---
+
+    /// Mock document store for testing.
+    struct MockDocumentStore {
+        documents: Mutex<Vec<Document>>,
+        should_fail: bool,
+    }
+
+    impl MockDocumentStore {
+        fn new() -> Self {
+            Self {
+                documents: Mutex::new(Vec::new()),
+                should_fail: false,
+            }
+        }
+
+        fn with_documents(documents: Vec<Document>) -> Self {
+            Self {
+                documents: Mutex::new(documents),
+                should_fail: false,
+            }
+        }
+    }
+
+    #[async_trait]
+    impl DocumentStore for MockDocumentStore {
+        async fn create(&self, request: CreateDocumentRequest) -> StoreResult<Document> {
+            if self.should_fail {
+                return Err(StoreError::QueryFailed("Mock failure".to_string()));
+            }
+            let now = Utc::now();
+            let id = Document::slugify(&request.title);
+            let doc = Document {
+                id,
+                title: request.title,
+                content: request.content,
+                tags: request.tags,
+                created_by: request.created_by,
+                created_at: now,
+                updated_at: now,
+            };
+            self.documents.lock().unwrap().push(doc.clone());
+            Ok(doc)
+        }
+
+        async fn get(&self, id: &str) -> StoreResult<Option<Document>> {
+            if self.should_fail {
+                return Err(StoreError::QueryFailed("Mock failure".to_string()));
+            }
+            let docs = self.documents.lock().unwrap();
+            Ok(docs.iter().find(|d| d.id == id).cloned())
+        }
+
+        async fn update(&self, id: &str, request: UpdateDocumentRequest) -> StoreResult<Document> {
+            if self.should_fail {
+                return Err(StoreError::QueryFailed("Mock failure".to_string()));
+            }
+            let mut docs = self.documents.lock().unwrap();
+            let doc = docs
+                .iter_mut()
+                .find(|d| d.id == id)
+                .ok_or_else(|| StoreError::NotFound(id.to_string()))?;
+            if let Some(title) = request.title {
+                doc.title = title;
+            }
+            if let Some(content) = request.content {
+                doc.content = content;
+            }
+            if let Some(tags) = request.tags {
+                doc.tags = tags;
+            }
+            doc.updated_at = Utc::now();
+            Ok(doc.clone())
+        }
+
+        async fn delete(&self, id: &str) -> StoreResult<bool> {
+            if self.should_fail {
+                return Err(StoreError::QueryFailed("Mock failure".to_string()));
+            }
+            let mut docs = self.documents.lock().unwrap();
+            let len_before = docs.len();
+            docs.retain(|d| d.id != id);
+            Ok(docs.len() < len_before)
+        }
+
+        async fn list(&self, request: ListDocumentsRequest) -> StoreResult<Vec<Document>> {
+            if self.should_fail {
+                return Err(StoreError::QueryFailed("Mock failure".to_string()));
+            }
+            let docs = self.documents.lock().unwrap();
+            let results: Vec<Document> = docs
+                .iter()
+                .filter(|d| {
+                    if let Some(ref tags) = request.tags {
+                        if !tags.iter().any(|t| d.tags.contains(t)) {
+                            return false;
+                        }
+                    }
+                    if let Some(ref created_by) = request.created_by {
+                        if d.created_by != *created_by {
+                            return false;
+                        }
+                    }
+                    true
+                })
+                .cloned()
+                .collect();
+            Ok(results)
+        }
+
+        async fn initialize(&self) -> StoreResult<()> {
+            Ok(())
+        }
+    }
+
+    fn create_test_document(id: &str, title: &str, content: &str) -> Document {
+        Document {
+            id: id.to_string(),
+            title: title.to_string(),
+            content: content.to_string(),
+            tags: vec!["test".to_string()],
+            created_by: "testuser".to_string(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
+
+    fn app_with_doc_store(doc_store: MockDocumentStore) -> Router {
+        let state = AppState::new(MockStore::new())
+            .with_doc_store(std::sync::Arc::new(doc_store));
+        create_router(state)
+    }
+
+    #[tokio::test]
+    async fn test_create_document() {
+        let app = app_with_doc_store(MockDocumentStore::new());
+
+        let request_body = serde_json::json!({
+            "title": "Test Document",
+            "content": "# Hello World",
+            "created_by": "testuser"
+        });
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/v1/documents")
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(serde_json::to_string(&request_body).unwrap()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let response: berry::DocumentResponse = serde_json::from_slice(&body).unwrap();
+        assert!(response.success);
+        assert!(response.document.is_some());
+        let doc = response.document.unwrap();
+        assert_eq!(doc.title, "Test Document");
+        assert_eq!(doc.content, "# Hello World");
+    }
+
+    #[tokio::test]
+    async fn test_get_document_found() {
+        let doc = create_test_document("test-doc", "Test Doc", "# Content");
+        let app = app_with_doc_store(MockDocumentStore::with_documents(vec![doc]));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/v1/documents/test-doc")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let response: berry::DocumentResponse = serde_json::from_slice(&body).unwrap();
+        assert!(response.success);
+        assert_eq!(response.document.unwrap().id, "test-doc");
+    }
+
+    #[tokio::test]
+    async fn test_get_document_not_found() {
+        let app = app_with_doc_store(MockDocumentStore::new());
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/v1/documents/nonexistent")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn test_update_document() {
+        let doc = create_test_document("test-doc", "Test Doc", "# Original");
+        let app = app_with_doc_store(MockDocumentStore::with_documents(vec![doc]));
+
+        let request_body = serde_json::json!({
+            "content": "# Updated"
+        });
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("PATCH")
+                    .uri("/v1/documents/test-doc")
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(serde_json::to_string(&request_body).unwrap()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let response: berry::DocumentResponse = serde_json::from_slice(&body).unwrap();
+        assert!(response.success);
+        assert_eq!(response.document.unwrap().content, "# Updated");
+    }
+
+    #[tokio::test]
+    async fn test_delete_document() {
+        let doc = create_test_document("to-delete", "To Delete", "Content");
+        let app = app_with_doc_store(MockDocumentStore::with_documents(vec![doc]));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("DELETE")
+                    .uri("/v1/documents/to-delete")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let response: berry::DeleteResponse = serde_json::from_slice(&body).unwrap();
+        assert!(response.success);
+        assert!(response.deleted);
+    }
+
+    #[tokio::test]
+    async fn test_list_documents() {
+        let doc1 = create_test_document("doc-1", "Doc 1", "Content 1");
+        let doc2 = create_test_document("doc-2", "Doc 2", "Content 2");
+        let app = app_with_doc_store(MockDocumentStore::with_documents(vec![doc1, doc2]));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/v1/documents")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let response: berry::DocumentListResponse = serde_json::from_slice(&body).unwrap();
+        assert!(response.success);
+        assert_eq!(response.total, 2);
+        assert_eq!(response.documents.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_documents_not_enabled() {
+        let state = AppState::new(MockStore::new());
+        let app = create_router(state);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/v1/documents")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_IMPLEMENTED);
     }
 }

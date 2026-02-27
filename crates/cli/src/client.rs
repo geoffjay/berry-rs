@@ -6,8 +6,9 @@ use anyhow::{Context, Result};
 use reqwest::Client;
 
 use berry::{
-    CreateMemoryRequest, DeleteResponse, HealthResponse, Memory, MemoryResponse, SearchRequest,
-    SearchResponse, UpdateVisibilityRequest, VisibilityLevel,
+    CreateDocumentRequest, CreateMemoryRequest, DeleteResponse, Document, DocumentListResponse,
+    DocumentResponse, HealthResponse, ListDocumentsRequest, Memory, MemoryResponse, SearchRequest,
+    SearchResponse, UpdateDocumentRequest, UpdateVisibilityRequest, VisibilityLevel,
 };
 
 /// HTTP client for the Berry server.
@@ -165,5 +166,132 @@ impl BerryClient {
         response
             .memory
             .ok_or_else(|| anyhow::anyhow!("No memory in response"))
+    }
+
+    /// Create a new document.
+    pub async fn create_document(&self, request: CreateDocumentRequest) -> Result<Document> {
+        let url = format!("{}/v1/documents", self.base_url);
+        let resp = self
+            .client
+            .post(&url)
+            .json(&request)
+            .send()
+            .await
+            .context("Failed to create document")?;
+
+        if !resp.status().is_success() {
+            let error = resp.text().await.unwrap_or_default();
+            anyhow::bail!("Failed to create document: {}", error);
+        }
+
+        let response: DocumentResponse = resp.json().await.context("Failed to parse response")?;
+        response
+            .document
+            .ok_or_else(|| anyhow::anyhow!("No document in response"))
+    }
+
+    /// Get a document by ID.
+    pub async fn get_document(&self, id: &str) -> Result<Option<Document>> {
+        let url = format!("{}/v1/documents/{}", self.base_url, id);
+        let resp = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to get document")?;
+
+        if resp.status() == reqwest::StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+
+        if !resp.status().is_success() {
+            let error = resp.text().await.unwrap_or_default();
+            anyhow::bail!("Failed to get document: {}", error);
+        }
+
+        let response: DocumentResponse = resp.json().await.context("Failed to parse response")?;
+        Ok(response.document)
+    }
+
+    /// Update a document.
+    pub async fn update_document(
+        &self,
+        id: &str,
+        request: UpdateDocumentRequest,
+    ) -> Result<Document> {
+        let url = format!("{}/v1/documents/{}", self.base_url, id);
+        let resp = self
+            .client
+            .patch(&url)
+            .json(&request)
+            .send()
+            .await
+            .context("Failed to update document")?;
+
+        if !resp.status().is_success() {
+            let error = resp.text().await.unwrap_or_default();
+            anyhow::bail!("Failed to update document: {}", error);
+        }
+
+        let response: DocumentResponse = resp.json().await.context("Failed to parse response")?;
+        response
+            .document
+            .ok_or_else(|| anyhow::anyhow!("No document in response"))
+    }
+
+    /// Delete a document by ID.
+    pub async fn delete_document(&self, id: &str) -> Result<bool> {
+        let url = format!("{}/v1/documents/{}", self.base_url, id);
+        let resp = self
+            .client
+            .delete(&url)
+            .send()
+            .await
+            .context("Failed to delete document")?;
+
+        if !resp.status().is_success() {
+            let error = resp.text().await.unwrap_or_default();
+            anyhow::bail!("Failed to delete document: {}", error);
+        }
+
+        let response: DeleteResponse = resp.json().await.context("Failed to parse response")?;
+        Ok(response.deleted)
+    }
+
+    /// List documents with optional filters.
+    pub async fn list_documents(
+        &self,
+        request: ListDocumentsRequest,
+    ) -> Result<Vec<Document>> {
+        let mut url = format!("{}/v1/documents", self.base_url);
+        let mut params = Vec::new();
+
+        if let Some(ref tags) = request.tags {
+            for tag in tags {
+                params.push(format!("tags={}", tag));
+            }
+        }
+        if let Some(ref created_by) = request.created_by {
+            params.push(format!("created_by={}", created_by));
+        }
+        if !params.is_empty() {
+            url = format!("{}?{}", url, params.join("&"));
+        }
+
+        let resp = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to list documents")?;
+
+        if !resp.status().is_success() {
+            let error = resp.text().await.unwrap_or_default();
+            anyhow::bail!("Failed to list documents: {}", error);
+        }
+
+        let response: DocumentListResponse =
+            resp.json().await.context("Failed to parse response")?;
+        Ok(response.documents)
     }
 }

@@ -1,5 +1,6 @@
 //! CLI command implementations.
 
+pub mod doc;
 pub mod forget;
 pub mod init;
 pub mod mcp;
@@ -9,6 +10,7 @@ pub mod remember;
 pub mod search;
 pub mod serve;
 
+pub use doc::run as doc;
 pub use forget::run as forget;
 pub use init::run as init;
 pub use mcp::run as mcp;
